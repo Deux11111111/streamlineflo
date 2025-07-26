@@ -1,5 +1,5 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Bot, Workflow, BarChart3, Shield, Clock, Cpu } from "lucide-react";
+import { Bot, Workflow, BarChart3, Clock, Cpu } from "lucide-react";
 
 const Services = () => {
   const services = [
@@ -22,12 +22,6 @@ const Services = () => {
       features: ["Performance Metrics", "Predictive Analytics", "ROI Tracking"]
     },
     {
-      icon: Shield,
-      title: "Security & Compliance",
-      description: "Enterprise-grade security with full compliance support for regulated industries.",
-      features: ["Data Encryption", "Audit Trails", "Compliance Ready"]
-    },
-    {
       icon: Clock,
       title: "24/7 Support",
       description: "Round-the-clock monitoring and support to ensure your automations run smoothly.",
@@ -46,7 +40,7 @@ const Services = () => {
       <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-secondary/5"></div>
       <div className="container mx-auto px-6 relative">
         <div className="text-center mb-16 animate-slide-up">
-          <h2 className="text-4xl md:text-5xl font-bold mb-6">
+          <h2 className="font-display text-4xl md:text-5xl font-bold mb-6 heading-glow">
             Our <span className="gradient-text">AI-Powered</span> Services
           </h2>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
@@ -66,7 +60,7 @@ const Services = () => {
                 <div className="mx-auto w-16 h-16 bg-gradient-primary rounded-2xl flex items-center justify-center mb-4 animate-pulse-glow">
                   <service.icon className="w-8 h-8 text-white" />
                 </div>
-                <CardTitle className="text-xl font-bold">{service.title}</CardTitle>
+                <CardTitle className="font-display text-xl font-bold text-glow">{service.title}</CardTitle>
                 <CardDescription className="text-muted-foreground">
                   {service.description}
                 </CardDescription>

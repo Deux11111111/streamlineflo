@@ -10,7 +10,7 @@ const Footer = () => {
             <img 
               src="/lovable-uploads/709100ab-f590-4ead-92c2-c97a43e48597.png" 
               alt="StreamlineFlo Logo" 
-              className="h-12 w-auto mb-4"
+              className="h-20 w-auto mb-4"
             />
             <p className="text-muted-foreground mb-6 max-w-md">
               Transforming businesses through intelligent automation. We help companies 

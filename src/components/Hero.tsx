@@ -7,7 +7,18 @@ const Hero = () => {
   };
 
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
+    <section className="relative min-h-screen flex flex-col overflow-hidden">
+      {/* Header with Logo */}
+      <header className="relative z-20 pt-8 px-6">
+        <div className="container mx-auto">
+          <img 
+            src="/lovable-uploads/709100ab-f590-4ead-92c2-c97a43e48597.png" 
+            alt="StreamlineFlo Logo" 
+            className="h-16 md:h-20 lg:h-24 w-auto animate-scale-in"
+          />
+        </div>
+      </header>
+
       {/* Background Effects */}
       <div className="absolute inset-0 bg-gradient-glow opacity-60"></div>
       <div className="absolute inset-0 bg-grid opacity-10"></div>
@@ -17,19 +28,11 @@ const Hero = () => {
       <div className="absolute top-40 right-32 w-32 h-32 bg-secondary/20 rounded-full blur-xl animate-float" style={{ animationDelay: '2s' }}></div>
       <div className="absolute bottom-20 left-1/4 w-16 h-16 bg-accent/20 rounded-full blur-xl animate-float" style={{ animationDelay: '4s' }}></div>
 
-      <div className="container mx-auto px-6 text-center relative z-10">
-        {/* Logo */}
-        <div className="mb-8 animate-scale-in">
-          <img 
-            src="/lovable-uploads/709100ab-f590-4ead-92c2-c97a43e48597.png" 
-            alt="StreamlineFlo Logo" 
-            className="mx-auto h-20 md:h-24 lg:h-28 w-auto"
-          />
-        </div>
+      <div className="container mx-auto px-6 text-center relative z-10 flex-1 flex items-center justify-center">
 
         {/* Hero Content */}
         <div className="max-w-5xl mx-auto animate-slide-up">
-          <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight">
+          <h1 className="font-display text-4xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight heading-glow">
             Automate Your
             <span className="gradient-text block">Workflows with AI</span>
           </h1>
