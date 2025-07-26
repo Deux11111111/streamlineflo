@@ -43,7 +43,7 @@ const Services = () => {
           <h2 className="font-display text-4xl md:text-5xl font-bold mb-6 heading-glow">
             Our <span className="gradient-text">AI-Powered</span> Services
           </h2>
-          <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+          <p className="font-body text-xl text-muted-foreground max-w-3xl mx-auto">
             Comprehensive automation solutions designed to transform your business operations
             and drive unprecedented growth.
           </p>
@@ -61,14 +61,14 @@ const Services = () => {
                   <service.icon className="w-8 h-8 text-white" />
                 </div>
                 <CardTitle className="font-display text-xl font-bold text-glow">{service.title}</CardTitle>
-                <CardDescription className="text-muted-foreground">
+                <CardDescription className="font-body text-muted-foreground">
                   {service.description}
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <ul className="space-y-2">
                   {service.features.map((feature, featureIndex) => (
-                    <li key={featureIndex} className="flex items-center text-sm">
+                    <li key={featureIndex} className="flex items-center font-body text-sm">
                       <div className="w-2 h-2 bg-primary rounded-full mr-3"></div>
                       {feature}
                     </li>

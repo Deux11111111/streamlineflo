@@ -7,49 +7,49 @@
 
 @layer base {
   :root {
-    /* Core Brand Colors - Blue to Purple Gradient Theme */
-    --background: 240 10% 3.9%;
+    /* Royal Trust Color Scheme - Deep Blues & Purples */
+    --background: 230 15% 8%;
     --foreground: 210 40% 98%;
 
-    --card: 240 10% 3.9%;
+    --card: 230 15% 10%;
     --card-foreground: 210 40% 98%;
 
-    --popover: 240 10% 3.9%;
+    --popover: 230 15% 8%;
     --popover-foreground: 210 40% 98%;
 
-    /* Primary - StreamlineFlo Brand Blue */
-    --primary: 217 91% 60%;
+    /* Primary - Royal Blue (Trust) */
+    --primary: 240 100% 65%;
     --primary-foreground: 210 40% 98%;
-    --primary-glow: 217 91% 70%;
+    --primary-glow: 240 100% 75%;
 
-    /* Secondary - Complementary Purple */
-    --secondary: 267 84% 81%;
-    --secondary-foreground: 240 10% 3.9%;
+    /* Secondary - Royal Purple (Royalty) */
+    --secondary: 280 100% 70%;
+    --secondary-foreground: 210 40% 98%;
 
-    --muted: 240 5% 11%;
-    --muted-foreground: 240 5% 64.9%;
+    --muted: 230 10% 15%;
+    --muted-foreground: 230 5% 65%;
 
-    --accent: 267 84% 81%;
-    --accent-foreground: 240 10% 3.9%;
+    --accent: 280 100% 70%;
+    --accent-foreground: 210 40% 98%;
 
-    --destructive: 0 84.2% 60.2%;
+    --destructive: 0 84% 60%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 240 5% 11%;
-    --input: 240 5% 11%;
-    --ring: 217 91% 60%;
+    --border: 230 10% 18%;
+    --input: 230 10% 15%;
+    --ring: 240 100% 65%;
 
     --radius: 0.75rem;
 
-    /* Custom Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(217 91% 60%), hsl(267 84% 81%));
-    --gradient-hero: linear-gradient(135deg, hsl(217 91% 60% / 0.1), hsl(267 84% 81% / 0.1));
-    --gradient-glow: radial-gradient(600px at 50% 50%, hsl(217 91% 60% / 0.15), transparent);
+    /* Royal Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(240 100% 65%), hsl(280 100% 70%));
+    --gradient-hero: linear-gradient(135deg, hsl(240 100% 65% / 0.1), hsl(280 100% 70% / 0.1));
+    --gradient-glow: radial-gradient(600px at 50% 50%, hsl(240 100% 65% / 0.15), transparent);
     
-    /* Shadows with Brand Colors */
-    --shadow-primary: 0 10px 40px -10px hsl(217 91% 60% / 0.3);
-    --shadow-glow: 0 0 60px hsl(217 91% 60% / 0.4);
-    --shadow-card: 0 8px 32px -8px hsl(240 10% 3.9% / 0.8);
+    /* Royal Shadows */
+    --shadow-primary: 0 10px 40px -10px hsl(240 100% 65% / 0.3);
+    --shadow-glow: 0 0 40px hsl(240 100% 75% / 0.4);
+    --shadow-card: 0 4px 20px -4px hsl(240 100% 65% / 0.25);
 
     /* Animation Timings */
     --transition-smooth: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);

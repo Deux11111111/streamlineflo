@@ -14,7 +14,7 @@ const Hero = () => {
           <img 
             src="/lovable-uploads/709100ab-f590-4ead-92c2-c97a43e48597.png" 
             alt="StreamlineFlo Logo" 
-            className="h-16 md:h-20 lg:h-24 w-auto animate-scale-in"
+            className="h-24 md:h-32 lg:h-40 w-auto animate-scale-in"
           />
         </div>
       </header>
@@ -37,7 +37,7 @@ const Hero = () => {
             <span className="gradient-text block">Workflows with AI</span>
           </h1>
           
-          <p className="text-xl md:text-2xl text-muted-foreground mb-8 max-w-3xl mx-auto leading-relaxed">
+          <p className="font-body text-xl md:text-2xl text-muted-foreground mb-8 max-w-3xl mx-auto leading-relaxed">
             Transform your business operations with cutting-edge AI automation. 
             Increase efficiency, reduce costs, and scale your operations like never before.
           </p>
@@ -47,17 +47,17 @@ const Hero = () => {
             <div className="flex flex-col items-center p-6 rounded-2xl bg-card/50 backdrop-blur-sm border border-border/50 hover-lift">
               <Zap className="w-8 h-8 text-primary mb-2" />
               <div className="text-2xl font-bold gradient-text">90%</div>
-              <div className="text-sm text-muted-foreground">Time Saved</div>
+              <div className="font-body text-sm text-muted-foreground">Time Saved</div>
             </div>
             <div className="flex flex-col items-center p-6 rounded-2xl bg-card/50 backdrop-blur-sm border border-border/50 hover-lift">
               <Brain className="w-8 h-8 text-secondary mb-2" />
               <div className="text-2xl font-bold gradient-text">AI-Powered</div>
-              <div className="text-sm text-muted-foreground">Intelligence</div>
+              <div className="font-body text-sm text-muted-foreground">Intelligence</div>
             </div>
             <div className="flex flex-col items-center p-6 rounded-2xl bg-card/50 backdrop-blur-sm border border-border/50 hover-lift">
               <Target className="w-8 h-8 text-accent mb-2" />
               <div className="text-2xl font-bold gradient-text">100%</div>
-              <div className="text-sm text-muted-foreground">ROI Focused</div>
+              <div className="font-body text-sm text-muted-foreground">ROI Focused</div>
             </div>
           </div>
 
