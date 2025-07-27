@@ -23,9 +23,9 @@ const Services = () => {
     },
     {
       icon: Clock,
-      title: "24/7 Support",
-      description: "Round-the-clock monitoring and support to ensure your automations run smoothly.",
-      features: ["Proactive Monitoring", "Instant Alerts", "Expert Support"]
+      title: "Maintenance for Automations",
+      description: "Comprehensive maintenance and support to ensure your automations run smoothly.",
+      features: ["Proactive Monitoring", "Performance Optimization", "Expert Support"]
     },
     {
       icon: Cpu,
@@ -49,7 +49,7 @@ const Services = () => {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-8">
           {services.map((service, index) => (
             <Card 
               key={index} 

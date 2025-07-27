@@ -43,10 +43,10 @@ const AuditForm = () => {
       <div className="container mx-auto px-6 relative">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-12 animate-slide-up">
-            <h2 className="text-4xl md:text-5xl font-bold mb-6">
+            <h2 className="font-display text-4xl md:text-5xl font-bold mb-6 heading-glow">
               Get Your <span className="gradient-text">Free</span> Workflow Audit
             </h2>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+            <p className="font-body text-xl text-muted-foreground max-w-2xl mx-auto">
               Discover hidden automation opportunities in your business. Our experts will 
               analyze your workflows and provide actionable insights - completely free.
             </p>
@@ -55,7 +55,7 @@ const AuditForm = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             {/* Benefits */}
             <div className="space-y-6 animate-scale-in">
-              <h3 className="text-2xl font-bold mb-6">What You'll Get:</h3>
+              <h3 className="font-display text-2xl font-bold mb-6 text-glow">What You'll Get:</h3>
               <div className="space-y-4">
                 {[
                   "Comprehensive workflow analysis",
@@ -66,7 +66,7 @@ const AuditForm = () => {
                 ].map((benefit, index) => (
                   <div key={index} className="flex items-center">
                     <Sparkles className="w-5 h-5 text-primary mr-3 flex-shrink-0" />
-                    <span className="text-muted-foreground">{benefit}</span>
+                    <span className="font-body text-muted-foreground">{benefit}</span>
                   </div>
                 ))}
               </div>
@@ -83,8 +83,8 @@ const AuditForm = () => {
             {/* Form */}
             <Card className="card-glow bg-card/90 backdrop-blur-sm border-border/50 animate-scale-in">
               <CardHeader className="text-center">
-                <CardTitle className="text-2xl font-bold">Book Your Free Audit</CardTitle>
-                <CardDescription>
+                <CardTitle className="font-display text-2xl font-bold text-glow">Book Your Free Audit</CardTitle>
+                <CardDescription className="font-body">
                   Takes less than 2 minutes. We'll contact you within 24 hours.
                 </CardDescription>
               </CardHeader>
