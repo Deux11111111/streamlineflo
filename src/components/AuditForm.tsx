@@ -39,7 +39,6 @@ const AuditForm = () => {
 
   return (
     <section id="audit-form" className="py-24 relative">
-      <div className="absolute inset-0 bg-gradient-to-tr from-secondary/10 to-primary/10"></div>
       <div className="container mx-auto px-6 relative">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-12 animate-slide-up">

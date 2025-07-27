@@ -37,7 +37,6 @@ const Services = () => {
 
   return (
     <section className="py-24 relative">
-      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-secondary/5"></div>
       <div className="container mx-auto px-6 relative">
         <div className="text-center mb-16 animate-slide-up">
           <h2 className="font-display text-4xl md:text-5xl font-bold mb-6 heading-glow">

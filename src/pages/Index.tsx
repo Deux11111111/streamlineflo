@@ -7,7 +7,6 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">
       {/* AI/Workflow Background Elements */}
-      <div className="absolute inset-0 bg-grid opacity-20"></div>
       <div className="absolute top-0 left-0 w-full h-full">
         <div className="absolute top-20 left-10 w-32 h-32 bg-primary/10 rounded-full blur-xl animate-pulse"></div>
         <div className="absolute top-40 right-20 w-48 h-48 bg-secondary/10 rounded-full blur-2xl animate-float"></div>
