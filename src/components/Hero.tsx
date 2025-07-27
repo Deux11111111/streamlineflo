@@ -62,7 +62,7 @@ const Hero = () => {
           </div>
 
           {/* CTA Buttons */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+          <div className="flex justify-center items-center">
             <Button 
               size="lg" 
               className="bg-gradient-primary hover:opacity-90 transition-opacity text-lg px-8 py-6 glow-primary"
@@ -70,13 +70,6 @@ const Hero = () => {
             >
               Get Free Audit
               <ArrowRight className="ml-2 w-5 h-5" />
-            </Button>
-            <Button 
-              variant="outline" 
-              size="lg"
-              className="text-lg px-8 py-6 border-primary/50 hover:bg-primary/10"
-            >
-              Learn More
             </Button>
           </div>
         </div>

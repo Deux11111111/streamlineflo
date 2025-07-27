@@ -31,7 +31,7 @@ const Services = () => {
       icon: Cpu,
       title: "Custom Development",
       description: "Tailored automation solutions built specifically for your unique business requirements.",
-      features: ["Bespoke Solutions", "API Development", "Legacy Integration"]
+      features: ["Bespoke Solutions", "Legacy Integration"]
     }
   ];
 
