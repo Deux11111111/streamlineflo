@@ -6,32 +6,32 @@ const Services = () => {
     {
       icon: Bot,
       title: "AI Process Automation",
-      description: "Intelligent automation that learns and adapts to your business processes, eliminating repetitive tasks.",
-      features: ["Smart Decision Making", "Self-Learning Algorithms", "24/7 Operation"]
+      description: "Intelligent automation and robotic process automation (RPA) that learns and adapts to your business processes, eliminating repetitive manual tasks.",
+      features: ["Smart Decision Making", "Machine Learning Algorithms", "24/7 Automated Operation"]
     },
     {
       icon: Workflow,
-      title: "Workflow Optimization",
-      description: "Streamline complex workflows with our advanced automation tools and custom integrations.",
-      features: ["Custom Integrations", "Real-time Monitoring", "Scalable Solutions"]
+      title: "Business Process Automation",
+      description: "Streamline complex business workflows with advanced automation tools, workflow management systems, and seamless integrations.",
+      features: ["Automated Workflows", "Process Optimization", "Enterprise Integration"]
     },
     {
       icon: BarChart3,
-      title: "Analytics & Insights",
-      description: "Data-driven insights to optimize performance and identify new automation opportunities.",
-      features: ["Performance Metrics", "Predictive Analytics", "ROI Tracking"]
+      title: "Automation Analytics & Insights",
+      description: "Data-driven insights to optimize automated processes, measure automation ROI, and identify new workflow automation opportunities.",
+      features: ["Automation Performance Metrics", "Process Analytics", "ROI Optimization"]
     },
     {
       icon: Clock,
-      title: "Maintenance for Automations",
-      description: "Comprehensive maintenance and support to ensure your automations run smoothly.",
-      features: ["Proactive Monitoring", "Performance Optimization", "Expert Support"]
+      title: "Automation Maintenance & Support",
+      description: "Comprehensive maintenance and support services to ensure your automated workflows and business processes run smoothly.",
+      features: ["24/7 Automation Monitoring", "Performance Optimization", "Expert Technical Support"]
     },
     {
       icon: Cpu,
-      title: "Custom Development",
-      description: "Tailored automation solutions built specifically for your unique business requirements.",
-      features: ["Bespoke Solutions", "Legacy Integration"]
+      title: "Custom Automation Development",
+      description: "Tailored workflow automation and intelligent automation solutions built specifically for your unique business process requirements.",
+      features: ["Bespoke Automation Solutions", "Legacy System Integration"]
     }
   ];
 
@@ -40,11 +40,11 @@ const Services = () => {
       <div className="container mx-auto px-6 relative">
         <div className="text-center mb-16 animate-slide-up">
           <h2 className="font-display text-4xl md:text-5xl font-bold mb-6 heading-glow">
-            Our <span className="gradient-text">AI-Powered</span> Services
+            Our <span className="gradient-text">Workflow Automation</span> Services
           </h2>
           <p className="font-body text-xl text-muted-foreground max-w-3xl mx-auto">
-            Comprehensive automation solutions designed to transform your business operations
-            and drive unprecedented growth.
+            Comprehensive business process automation and intelligent automation solutions designed to transform your operations, 
+            reduce manual tasks, and accelerate digital transformation.
           </p>
         </div>
 

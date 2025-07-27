@@ -13,7 +13,7 @@ const Hero = () => {
         <div className="container mx-auto">
           <img 
             src="/lovable-uploads/709100ab-f590-4ead-92c2-c97a43e48597.png" 
-            alt="StreamlineFlo Logo" 
+            alt="StreamlineFlo - AI Workflow Automation and Business Process Automation Services" 
             className="h-24 md:h-32 lg:h-40 w-auto animate-scale-in"
           />
         </div>
@@ -33,13 +33,13 @@ const Hero = () => {
         {/* Hero Content */}
         <div className="max-w-5xl mx-auto animate-slide-up">
           <h1 className="font-display text-4xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight heading-glow">
-            Automate Your
-            <span className="gradient-text block">Workflows with AI</span>
+            AI Workflow Automation
+            <span className="gradient-text block">& Business Process Automation</span>
           </h1>
           
           <p className="font-body text-xl md:text-2xl text-muted-foreground mb-8 max-w-3xl mx-auto leading-relaxed">
-            Transform your business operations with cutting-edge AI automation. 
-            Increase efficiency, reduce costs, and scale your operations like never before.
+            Leading provider of intelligent automation solutions and automated workflows. 
+            Reduce manual tasks by 90%, streamline business processes, and scale with AI-powered automation.
           </p>
 
           {/* Stats */}
@@ -63,14 +63,14 @@ const Hero = () => {
 
           {/* CTA Buttons */}
           <div className="flex justify-center items-center">
-            <Button 
-              size="lg" 
-              className="bg-gradient-primary hover:opacity-90 transition-opacity text-lg px-8 py-6 glow-primary"
-              onClick={scrollToForm}
-            >
-              Get Free Audit
-              <ArrowRight className="ml-2 w-5 h-5" />
-            </Button>
+              <Button 
+                size="lg" 
+                className="bg-gradient-primary hover:opacity-90 transition-opacity text-lg px-8 py-6 glow-primary"
+                onClick={scrollToForm}
+              >
+                Get Free Workflow Automation Audit
+                <ArrowRight className="ml-2 w-5 h-5" />
+              </Button>
           </div>
         </div>
 
