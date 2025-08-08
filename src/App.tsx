@@ -22,6 +22,20 @@ const App = () => (
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
+
+  import ChatWidget from "./components/ChatWidget";
+
+function App() {
+  return (
+    <>
+      {/* Your site content */}
+      <ChatWidget /> {/* Placed here so it’s always visible */}
+    </>
+  );
+}
+
+export default App;
+
 );
 
 export default App;
