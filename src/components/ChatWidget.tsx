@@ -13,7 +13,8 @@ export default function ChatWidget() {
     setMessage("");
 
     try {
-      const res = await fetch("https://YOUR-N8N-WEBHOOK-URL", {
+      const res = await fetch("https://hook.eu2.make.com/92hnx6vb6qwcd906peiaf8l9v1h1698c
+", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message }),
