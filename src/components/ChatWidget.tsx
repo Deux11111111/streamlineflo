@@ -122,9 +122,9 @@ const ChatWidget = () => {
           </button>
 
           <div class="lw-card lw-hidden" id="lw-panel" role="dialog" aria-label="Chat widget">
-            <div class="lw-header">
-              <h2 class="lw-title">${TITLE}</h2>
-              <p class="lw-sub">${SUBTITLE}</p>
-            </div>
-            <div class="lw-body">
-              <div class="lw-scroll" id="
+  <div class="lw-header">
+    <h2 class="lw-title">${TITLE}</h2>
+    <p class="lw-sub">${SUBTITLE}</p>
+  </div>
+  <div class="lw-body">
+    <div class="lw-scroll" id="lw-scroll">
