@@ -185,7 +185,7 @@ export default function ChatWidgetVanilla() {
                 body: JSON.stringify({ message: text }),
               });
               const data = await res.json();
-              addMessage("assistant", data.response || "No response");
+              addMessage("assistant", data.result || "No response");
             } catch (err) {
               console.error("[ChatWidget] Error sending message", err);
               addMessage("assistant", "Sorry, something went wrong.");
