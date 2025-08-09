@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 
-export const ChatWidget: React.FC = () => {
+const ChatWidget: React.FC = () => {
   const WEBHOOK_URL = "https://hook.eu2.make.com/gonu3z4lcwjujhryw6sh8pns67nylf45"; // <-- Replace this with your actual webhook
 
   const [open, setOpen] = useState(false);
@@ -362,3 +362,5 @@ export const ChatWidget: React.FC = () => {
     </div>
   );
 };
+
+export default ChatWidget;
