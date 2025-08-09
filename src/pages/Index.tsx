@@ -12,7 +12,7 @@ const Index = () => {
     script.type = "text/javascript";
     script.text = `
       (function () {
-        const WEBHOOK_URL = "${https://hook.eu2.make.com/gonu3z4lcwjujhryw6sh8pns67nylf45
+        const WEBHOOK_URL = "https://hook.eu2.make.com/gonu3z4lcwjujhryw6sh8pns67nylf45";
 }";
         /*!
  Lightweight Chat Popup (vanilla JS, no deps)
