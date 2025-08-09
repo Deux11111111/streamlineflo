@@ -20,7 +20,7 @@ export default function ChatWidgetVanilla() {
         const DARK = "#0b1220";
         // ==========================
 
-        if (!WEBHOOK_URL || WEBHOOK_URL.includes("your-webhook-url")) {AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+        if (!WEBHOOK_URL || WEBHOOK_URL.includes("https://hook.eu2.make.com/gonu3z4lcwjujhryw6sh8pns67nylf45")) {
           console.warn("[ChatPopup] Please set WEBHOOK_URL in the snippet.");
         }
         if (document.getElementById("lw-chat-widget-host")) return;
