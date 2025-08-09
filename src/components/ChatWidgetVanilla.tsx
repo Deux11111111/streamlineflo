@@ -322,38 +322,35 @@ export default function ChatWidgetVanilla() {
             input.value = "";
             scroll.querySelector(".lw-empty")?.remove();
 
-            try {
-              const res = await fetch(WEBHOOK_URL, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ message: text }),
-              });
-              if (!res.ok) throw new Error("Network response was not ok");
-              const data = await res.json();
-              addMessage(data.result || "No response", "assistant");
-            } catch (err) {
-              addMessage("Sorry, something went wrong.", "assistant");
-              console.error(err);
-            } finally {
-              loading = false;
-              sendBtn.disabled = false;
-            }
-          }
+          try {
+  const res = await fetch(https://hook.eu2.make.com/gonu3z4lcwjujhryw6sh8pns67nylf45, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ message: text }),
+  });
 
-          form.addEventListener("submit", (e) => {
-            e.preventDefault();
-            const text = input.value.trim();
-            if (!text) return;
-            sendMessage(text);
-          });
-        }
+  console.log("[ChatWidgetVanilla] Response status:", res.status);
 
-        if (document.readyState === "complete" || document.readyState === "interactive") {
-          run();
-        } else {
-          window.addEventListener("DOMContentLoaded", run);
-        }
-      })();
+  if (!res.ok) {
+    throw new Error(`Network response was not ok: ${res.statusText}`);
+  }
+
+  const data = await res.json();
+  console.log("[ChatWidgetVanilla] Response data:", data);
+
+  if (data.result) {
+    addMessage("assistant", data.result);
+  } else {
+    addMessage("assistant", "No 'result' field in response.");
+  }
+} catch (err) {
+  console.error("[ChatWidgetVanilla] Error sending message", err);
+  addMessage("assistant", "Sorry, something went wrong.");
+} finally {
+  input.disabled = false;
+  sendBtn.disabled = false;
+  input.focus();
+}
     `;
 
     const script = document.createElement("script");
