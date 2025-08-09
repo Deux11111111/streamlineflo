@@ -112,19 +112,34 @@ const ChatWidget = () => {
         `;
 
         const wrap = document.createElement("div");
-        wrap.className = "lw-root";
-        wrap.innerHTML = `
-          <button class="lw-btn" id="lw-toggle" aria-expanded="false" aria-controls="lw-panel" title="Open chat">
-            <svg class="lw-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M21 15a4 4 0 0 1-4 4H7l-4 4V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z" />
-            </svg>
-            <span class="lw-glow"></span>
-          </button>
+wrap.className = "lw-root";
+wrap.innerHTML = `
+  <button class="lw-btn" id="lw-toggle" aria-expanded="false" aria-controls="lw-panel" title="Open chat">
+    <svg class="lw-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M21 15a4 4 0 0 1-4 4H7l-4 4V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z" />
+    </svg>
+    <span class="lw-glow"></span>
+  </button>
 
-          <div class="lw-card lw-hidden" id="lw-panel" role="dialog" aria-label="Chat widget">
-  <div class="lw-header">
-    <h2 class="lw-title">${TITLE}</h2>
-    <p class="lw-sub">${SUBTITLE}</p>
+  <div class="lw-card lw-hidden" id="lw-panel" role="dialog" aria-label="Chat widget">
+    <div class="lw-header">
+      <h2 class="lw-title">${TITLE}</h2>
+      <p class="lw-sub">${SUBTITLE}</p>
+    </div>
+    <div class="lw-body">
+      <div class="lw-scroll" id="lw-scroll">
+        <p class="lw-empty" id="lw-empty">Start the conversation below.</p>
+      </div>
+    </div>
+    <form class="lw-footer" id="lw-form">
+      <input class="lw-input" id="lw-input" placeholder="Type your message..." aria-label="Message" />
+      <button class="lw-send" id="lw-send" type="submit">
+        <svg class="lw-send-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="m22 2-7 20-4-9-9-4Z" />
+          <path d="M22 2 11 13" />
+        </svg>
+        <span>Send</span>
+      </button>
+    </form>
   </div>
-  <div class="lw-body">
-    <div class="lw-scroll" id="lw-scroll">
+`;
