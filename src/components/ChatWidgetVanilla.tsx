@@ -2,15 +2,22 @@ import React, { useEffect } from "react";
 
 export default function ChatWidgetVanilla() {
   useEffect(() => {
+    console.log("[ChatWidgetVanilla] useEffect triggered");
+
     const scriptContent = `
       (function () {
+        console.log("[ChatWidgetVanilla] injected script running");
+
+        // ========= CONFIG =========
         const WEBHOOK_URL = "https://hook.eu2.make.com/gonu3z4lcwjujhryw6sh8pns67nylf45";
         const TITLE = "Chat";
         const SUBTITLE = "Ask anything.";
-        const POSITION = "bottom-right";
+        const POSITION = "bottom-right"; // "bottom-right" | "bottom-left"
+        // Theme colors
         const PRIMARY = "#4f46e5"; // indigo
         const PRIMARY_HOVER = "#4338ca";
         const DARK = "#0b1220";
+        // ==========================
 
         if (!WEBHOOK_URL || WEBHOOK_URL.includes("https://hook.eu2.make.com/gonu3z4lcwjujhryw6sh8pns67nylf45")) {
           console.warn("[ChatPopup] Please set WEBHOOK_URL in the snippet.");
@@ -18,6 +25,8 @@ export default function ChatWidgetVanilla() {
         if (document.getElementById("lw-chat-widget-host")) return;
 
         function run() {
+          console.log("[ChatWidgetVanilla] run() called");
+
           const host = document.createElement("div");
           host.id = "lw-chat-widget-host";
           host.style.all = "initial";
@@ -26,93 +35,113 @@ export default function ChatWidgetVanilla() {
 
           const style = document.createElement("style");
           style.textContent = \`
-            @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&display=swap');
+            @import url('https://fonts.googleapis.com/css2?family=Poppins&display=swap');
 
             :host, * {
               box-sizing: border-box;
-              font-family: 'Montserrat', ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Helvetica Neue, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+              font-family: 'Poppins', sans-serif;
             }
 
             @keyframes spin { to { transform: rotate(360deg); } }
             @keyframes enter { 0% { opacity: 0; transform: translateY(6px) scale(.98) } 100% { opacity: 1; transform: translateY(0) scale(1) } }
 
             .lw-root {
-              position: fixed; z-index: 2147483646; bottom: 24px;
+              position: fixed;
+              z-index: 2147483646;
+              bottom: 24px;
               \${POSITION === "bottom-left" ? "left: 24px;" : "right: 24px;"}
-              font-family: 'Montserrat', sans-serif;
               color: #111827;
+              font-size: 14px;
+              user-select: none;
             }
 
             .lw-btn {
-              background: #4f46e5;
+              background: \${PRIMARY};
               border: none;
               border-radius: 50%;
-              width: 48px;
-              height: 48px;
+              width: 56px;
+              height: 56px;
               cursor: pointer;
-              box-shadow: 0 6px 15px rgba(79, 70, 229, 0.4);
               display: flex;
               align-items: center;
               justify-content: center;
-              transition: background-color 0.3s ease, box-shadow 0.3s ease;
+              box-shadow: 0 6px 20px rgba(79,70,229,.4);
+              transition: background-color 0.3s ease;
+              position: relative;
+              outline-offset: 4px;
             }
             .lw-btn:hover {
-              background-color: #4338ca;
-              box-shadow: 0 8px 20px rgba(67, 56, 202, 0.6);
+              background: \${PRIMARY_HOVER};
+              box-shadow: 0 8px 24px rgba(67,56,202,.6);
             }
-
             .lw-icon {
-              width: 24px;
-              height: 24px;
-              stroke-width: 2.5;
+              width: 28px;
+              height: 28px;
+              stroke-width: 2.2;
+            }
+            .lw-glow {
+              position: absolute;
+              top: 0; left: 0; right: 0; bottom: 0;
+              border-radius: 50%;
+              box-shadow: 0 0 8px 3px rgba(79,70,229,.5);
+              opacity: 0;
+              transition: opacity 0.3s ease;
+              pointer-events: none;
+            }
+            .lw-btn:focus-visible .lw-glow {
+              opacity: 1;
             }
 
             /* Panel (glassy) */
             .lw-card {
-              margin-top: 12px; width: min(90vw, 380px); border-radius: 18px; overflow: hidden;
-              background: rgba(255,255,255,.82); border: 1px solid rgba(2,6,23,.06);
-              box-shadow: 0 20px 50px rgba(2,6,23,.18), 0 6px 18px rgba(2,6,23,.12);
-              backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-              animation: enter .28s ease-out;
-              font-weight: 400;
+              margin-top: 12px;
+              width: min(90vw, 380px);
+              border-radius: 18px;
+              overflow: hidden;
+              background: rgba(255,255,255,0.85);
+              border: 1.5px solid rgba(79,70,229,0.4);
+              box-shadow: 0 20px 50px rgba(79,70,229,0.25), 0 6px 18px rgba(79,70,229,0.15);
+              backdrop-filter: blur(14px);
+              -webkit-backdrop-filter: blur(14px);
+              animation: enter 0.28s ease-out;
+              user-select: text;
             }
 
             .lw-header {
-              padding: 14px 16px 10px; border-bottom: 1px solid rgba(2,6,23,.06);
-              background: linear-gradient(90deg, rgba(79,70,229,.10), rgba(79,70,229,0));
+              padding: 16px 20px 12px;
+              border-bottom: 1px solid rgba(79,70,229,0.15);
+              background: linear-gradient(90deg, rgba(79,70,229,0.15), rgba(79,70,229,0));
             }
             .lw-title {
               margin: 0;
-              font-size: 18px;
-              font-weight: 600;
-              line-height: 1.1;
-              letter-spacing: .2px;
+              font-size: 17px;
+              font-weight: 700;
+              letter-spacing: 0.4px;
               color: #3730a3;
             }
             .lw-sub {
               margin: 6px 0 0;
               font-size: 13px;
-              color: #667085;
-              font-weight: 300;
+              color: #5b5fc7;
+              font-weight: 500;
             }
 
             .lw-body {
               height: 320px;
               overflow: hidden;
+              background: #fafafa;
             }
             .lw-scroll {
               height: 100%;
-              overflow: auto;
-              padding: 12px 12px 10px;
-              font-size: 14px;
-              color: #1e293b;
-              font-weight: 400;
+              overflow-y: auto;
+              padding: 14px 16px 12px;
             }
             .lw-empty {
               font-size: 14px;
-              color: #94a3b8;
-              font-style: italic;
-              font-weight: 300;
+              color: #8b8bbf;
+              font-weight: 500;
+              text-align: center;
+              margin-top: 40px;
             }
 
             .lw-row {
@@ -127,100 +156,107 @@ export default function ChatWidgetVanilla() {
             }
             .lw-bubble {
               max-width: 80%;
-              padding: 10px 16px;
+              padding: 11px 16px;
               border-radius: 20px;
               font-size: 14px;
               line-height: 1.5;
               border: 1px solid transparent;
-              animation: enter .25s ease-out;
-              word-break: break-word;
+              animation: enter 0.25s ease-out;
               white-space: pre-wrap;
+              word-wrap: break-word;
+              box-shadow: 0 2px 8px rgba(0,0,0,0.06);
             }
             .lw-bubble.user {
               background: \${PRIMARY};
               color: #fff;
-              box-shadow: 0 8px 20px rgba(79,70,229,.35);
-              font-weight: 500;
+              box-shadow: 0 8px 24px rgba(79,70,229,0.4);
+              border-color: rgba(79,70,229,0.8);
             }
             .lw-bubble.assistant {
-              background: rgba(2,6,23,.05);
-              color: #0b1220;
-              font-weight: 400;
+              background: #f5f7ff;
+              color: #3730a3;
+              border-color: rgba(79,70,229,0.3);
             }
 
             .lw-footer {
               display: flex;
-              gap: 8px;
-              border-top: 1px solid rgba(2,6,23,.06);
-              padding: 12px 12px;
+              gap: 12px;
+              border-top: 1.5px solid rgba(79,70,229,0.3);
+              padding: 14px 16px;
               align-items: center;
-              background: rgba(255,255,255,.75);
-              backdrop-filter: blur(10px);
+              background: rgba(255,255,255,0.95);
+              backdrop-filter: blur(16px);
+              -webkit-backdrop-filter: blur(16px);
             }
             .lw-input {
               flex: 1;
-              height: 44px;
-              padding: 10px 16px;
-              border: 2.5px solid rgba(79, 70, 229, 0.6);
-              border-radius: 999px;
-              font-size: 14px;
+              height: 48px;
+              padding: 12px 18px;
+              border: 2.5px solid \${PRIMARY};
+              border-radius: 9999px;
+              font-size: 15px;
               outline: none;
-              background: rgba(255, 255, 255, 0.95);
-              transition: box-shadow 0.3s ease, border-color 0.3s ease, background 0.3s ease;
-              font-weight: 400;
-              font-family: 'Montserrat', sans-serif;
+              background: #fff;
+              transition: box-shadow 0.3s ease, border-color 0.3s ease;
+              font-weight: 600;
+              color: #222;
+              box-shadow: 0 4px 12px rgba(79,70,229,0.25);
+              font-family: 'Poppins', sans-serif;
             }
             .lw-input::placeholder {
-              color: #a3a3ff;
-              font-weight: 300;
+              color: #9ca3af;
+              font-weight: 500;
             }
             .lw-input:focus {
-              border-color: \${PRIMARY};
-              box-shadow: 0 0 8px 3px rgba(79, 70, 229, 0.4);
+              border-color: \${PRIMARY_HOVER};
+              box-shadow: 0 0 14px 4px rgba(67,56,202,0.5);
               background: #fff;
             }
 
             .lw-send {
-              height: 44px;
+              height: 48px;
               padding: 0 18px;
               background: \${DARK};
               color: #fff;
-              border: 0;
-              border-radius: 999px;
-              font-size: 14px;
+              border: none;
+              border-radius: 9999px;
+              font-size: 15px;
               cursor: pointer;
               display: inline-flex;
               align-items: center;
+              justify-content: center;
               gap: 8px;
-              transition: transform 0.2s ease, filter 0.2s ease, box-shadow 0.2s ease;
-              box-shadow: 0 8px 20px rgba(2,6,23,0.18);
-              font-family: 'Montserrat', sans-serif;
-              font-weight: 600;
+              box-shadow: 0 10px 28px rgba(2,6,23,0.3);
+              transition: background-color 0.3s ease, transform 0.2s ease, filter 0.2s ease, box-shadow 0.3s ease;
+              font-weight: 700;
             }
             .lw-send:hover {
-              transform: translateY(-1px);
+              background: #121b2f;
+              transform: translateY(-2px);
               filter: brightness(1.1);
-              box-shadow: 0 10px 25px rgba(2,6,23,0.25);
+              box-shadow: 0 14px 36px rgba(2,6,23,0.4);
             }
             .lw-send[disabled] {
               opacity: 0.6;
               cursor: not-allowed;
               transform: none;
+              box-shadow: none;
             }
             .lw-spin {
-              width: 16px;
-              height: 16px;
-              border: 2px solid rgba(255,255,255,0.35);
+              width: 18px;
+              height: 18px;
+              border: 3px solid rgba(255,255,255,0.35);
               border-top-color: #fff;
-              border-radius: 999px;
-              display:inline-block;
+              border-radius: 50%;
+              display: inline-block;
               animation: spin 0.9s linear infinite;
               vertical-align: -3px;
             }
             .lw-send-icon {
-              width: 18px;
-              height: 18px;
+              width: 20px;
+              height: 20px;
               display: block;
+              stroke-width: 2.5;
             }
 
             .lw-hidden {
@@ -232,31 +268,31 @@ export default function ChatWidgetVanilla() {
           wrap.className = "lw-root";
           wrap.innerHTML = \`
             <button class="lw-btn" id="lw-toggle" aria-expanded="false" aria-controls="lw-panel" title="Open chat">
-              <svg class="lw-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <svg class="lw-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M21 15a4 4 0 0 1-4 4H7l-4 4V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z" />
               </svg>
               <span class="lw-glow"></span>
             </button>
 
-            <div class="lw-card lw-hidden" id="lw-panel" role="region" aria-label="Chat panel">
-              <div class="lw-header">
-                <h1 class="lw-title">\${TITLE}</h1>
-                <div class="lw-sub">\${SUBTITLE}</div>
-              </div>
-              <div class="lw-body" id="lw-body">
+            <div class="lw-card lw-hidden" id="lw-panel" role="dialog" aria-modal="true" aria-labelledby="lw-title" aria-describedby="lw-subtitle">
+              <header class="lw-header">
+                <h2 class="lw-title" id="lw-title">\${TITLE}</h2>
+                <p class="lw-sub" id="lw-subtitle">\${SUBTITLE}</p>
+              </header>
+              <section class="lw-body" id="lw-body">
                 <div class="lw-scroll" id="lw-scroll">
-                  <div class="lw-empty">Start chatting!</div>
+                  <p class="lw-empty">Start chatting now.</p>
                 </div>
-              </div>
-              <form class="lw-footer" id="lw-form">
-                <input type="text" id="lw-input" class="lw-input" placeholder="Write a message..." autocomplete="off" />
-                <button type="submit" id="lw-send" class="lw-send" aria-label="Send message">
-                  <svg class="lw-send-icon" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
-                    <line x1="22" y1="2" x2="11" y2="13"/>
-                    <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+              </section>
+              <footer class="lw-footer">
+                <input type="text" id="lw-input" class="lw-input" placeholder="Type a message..." autocomplete="off" />
+                <button id="lw-send" class="lw-send" title="Send message" aria-label="Send message">
+                  <svg class="lw-send-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="22" y1="2" x2="11" y2="13" />
+                    <polygon points="22 2 15 22 11 13 2 9 22 2" />
                   </svg>
                 </button>
-              </form>
+              </footer>
             </div>
           \`;
 
@@ -265,101 +301,104 @@ export default function ChatWidgetVanilla() {
 
           const toggleBtn = shadow.getElementById("lw-toggle");
           const panel = shadow.getElementById("lw-panel");
-          const form = shadow.getElementById("lw-form");
           const input = shadow.getElementById("lw-input");
-          const scroll = shadow.getElementById("lw-scroll");
           const sendBtn = shadow.getElementById("lw-send");
+          const scroll = shadow.getElementById("lw-scroll");
 
-          let open = false;
-          toggleBtn.addEventListener("click", () => {
-            open = !open;
-            panel.classList.toggle("lw-hidden", !open);
-            toggleBtn.setAttribute("aria-expanded", open ? "true" : "false");
-            toggleBtn.setAttribute("title", open ? "Close chat" : "Open chat");
+          let isOpen = false;
 
-            // Swap icon between chat bubble and X
-            if (open) {
-              toggleBtn.innerHTML =
-                '<svg class="lw-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">' +
-                '<line x1="18" y1="6" x2="6" y2="18" />' +
-                '<line x1="6" y1="6" x2="18" y2="18" />' +
-                '</svg>';
+          function togglePanel() {
+            isOpen = !isOpen;
+            panel.classList.toggle("lw-hidden", !isOpen);
+            toggleBtn.setAttribute("aria-expanded", isOpen.toString());
+            toggleBtn.setAttribute("title", isOpen ? "Close chat" : "Open chat");
+            if (isOpen) {
               input.focus();
-            } else {
-              toggleBtn.innerHTML =
-                '<svg class="lw-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">' +
-                '<path d="M21 15a4 4 0 0 1-4 4H7l-4 4V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z" />' +
-                '</svg>';
             }
-          });
-
-          let loading = false;
-          const messages = [];
-
-          function scrollToBottom() {
-            requestAnimationFrame(() => {
-              scroll.scrollTop = scroll.scrollHeight;
-            });
           }
 
-          function addMessage(text, role = "assistant") {
-            if (!text) return;
-            const row = document.createElement("div");
-            row.className = "lw-row " + role;
+          toggleBtn.addEventListener("click", togglePanel);
+
+          function addMessage(role, text) {
+            const msgWrap = document.createElement("div");
+            msgWrap.className = \`lw-row \${role}\`;
+
             const bubble = document.createElement("div");
-            bubble.className = "lw-bubble " + role;
+            bubble.className = \`lw-bubble \${role}\`;
             bubble.textContent = text;
-            row.appendChild(bubble);
-            scroll.appendChild(row);
-            scrollToBottom();
+
+            msgWrap.appendChild(bubble);
+            scroll.appendChild(msgWrap);
+
+            // Remove the empty placeholder if it exists
+            const empty = scroll.querySelector(".lw-empty");
+            if (empty) empty.remove();
+
+            // Scroll to bottom
+            scroll.scrollTop = scroll.scrollHeight;
           }
 
           async function sendMessage(text) {
-            if (loading) return;
-            loading = true;
-            sendBtn.disabled = true;
-            addMessage(text, "user");
+            if (!text.trim()) return;
+
+            addMessage("user", text);
+
             input.value = "";
-            scroll.querySelector(".lw-empty")?.remove();
+            input.disabled = true;
+            sendBtn.disabled = true;
 
-          try {
-  const res = await fetch(https://hook.eu2.make.com/gonu3z4lcwjujhryw6sh8pns67nylf45, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ message: text }),
-  });
+            try {
+              const res = await fetch(WEBHOOK_URL, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ message: text }),
+              });
 
-  console.log("[ChatWidgetVanilla] Response status:", res.status);
+              console.log("[ChatWidgetVanilla] Response status:", res.status);
 
-  if (!res.ok) {
-    throw new Error(`Network response was not ok: ${res.statusText}`);
-  }
+              if (!res.ok) {
+                throw new Error("Network response was not ok: " + res.statusText);
+              }
 
-  const data = await res.json();
-  console.log("[ChatWidgetVanilla] Response data:", data);
+              const data = await res.json();
+              console.log("[ChatWidgetVanilla] Response data:", data);
 
-  if (data.result) {
-    addMessage("assistant", data.result);
-  } else {
-    addMessage("assistant", "No 'result' field in response.");
-  }
-} catch (err) {
-  console.error("[ChatWidgetVanilla] Error sending message", err);
-  addMessage("assistant", "Sorry, something went wrong.");
-} finally {
-  input.disabled = false;
-  sendBtn.disabled = false;
-  input.focus();
-}
+              if (data.result) {
+                addMessage("assistant", data.result);
+              } else {
+                addMessage("assistant", "No 'result' field in response.");
+              }
+            } catch (err) {
+              console.error("[ChatWidgetVanilla] Error sending message", err);
+              addMessage("assistant", "Sorry, something went wrong.");
+            } finally {
+              input.disabled = false;
+              sendBtn.disabled = false;
+              input.focus();
+            }
+          }
+
+          sendBtn.addEventListener("click", () => sendMessage(input.value));
+          input.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              sendMessage(input.value);
+            }
+          });
+        }
+
+        run();
+      })();
     `;
 
     const script = document.createElement("script");
-    script.id = "lw-chat-widget";
+    script.id = "chat-widget-script";
+    script.type = "text/javascript";
     script.textContent = scriptContent;
     document.body.appendChild(script);
 
     return () => {
-      const existing = document.getElementById("lw-chat-widget");
+      const existing = document.getElementById("chat-widget-script");
       if (existing) existing.remove();
       const host = document.getElementById("lw-chat-widget-host");
       if (host) host.remove();
@@ -368,4 +407,3 @@ export default function ChatWidgetVanilla() {
 
   return null;
 }
-
