@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 
-export default function ChatWidget() {
+export default function ChatWidgetVanilla() {
   useEffect(() => {
     // The entire vanilla JS snippet as a string
     const scriptContent = `
