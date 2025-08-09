@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 
 export const ChatWidget: React.FC = () => {
-  const WEBHOOK_URL = "https://hook.eu2.make.com/gonu3z4lcwjujhryw6sh8pns67nylf45"; // <-- Put your webhook here!
+  const WEBHOOK_URL = "https://hook.eu2.make.com/gonu3z4lcwjujhryw6sh8pns67nylf45"; // <-- Replace this with your actual webhook
 
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<
@@ -11,7 +11,6 @@ export const ChatWidget: React.FC = () => {
   const [sending, setSending] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  // Scroll to bottom when messages or open change
   useEffect(() => {
     if (open && scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
@@ -79,7 +78,7 @@ export const ChatWidget: React.FC = () => {
     setInputValue("");
   };
 
-  // Styles copied and adapted from your original script
+  // Styles from your original design
   const styles = {
     root: {
       position: "fixed" as const,
@@ -106,11 +105,6 @@ export const ChatWidget: React.FC = () => {
       alignItems: "center",
       justifyContent: "center",
       transition: "transform .2s ease, filter .2s ease, box-shadow .2s ease, background .2s ease",
-    },
-    btnHover: {
-      transform: "translateY(-1px)",
-      filter: "brightness(1.03)",
-      background: "#4338ca",
     },
     glow: {
       position: "absolute" as const,
@@ -237,10 +231,6 @@ export const ChatWidget: React.FC = () => {
         "transform .2s ease, filter .2s ease, box-shadow .2s ease",
       boxShadow: "0 8px 20px rgba(2,6,23,.18)",
     },
-    sendBtnHover: {
-      transform: "translateY(-1px)",
-      filter: "brightness(1.02)",
-    },
     sendBtnDisabled: {
       opacity: 0.6,
       cursor: "not-allowed",
@@ -254,4 +244,121 @@ export const ChatWidget: React.FC = () => {
       borderRadius: 999,
       display: "inline-block",
       animation: "spin 0.9s linear infinite",
+    },
+  };
 
+  return (
+    <div style={styles.root}>
+      {!open && (
+        <button
+          style={styles.btn}
+          onClick={() => setOpen(true)}
+          aria-label="Open chat"
+        >
+          <span style={styles.glow} />
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2z" />
+          </svg>
+        </button>
+      )}
+
+      {open && (
+        <div style={styles.card}>
+          <div style={styles.header}>
+            <h2 style={styles.title}>Chat</h2>
+            <p style={styles.sub}>Ask anything.</p>
+          </div>
+          <div style={styles.body}>
+            <div style={styles.scroll} ref={scrollRef}>
+              {messages.length === 0 && (
+                <p style={styles.empty}>Say hi 👋</p>
+              )}
+              {messages.map(({ role, text }, i) => (
+                <div
+                  key={i}
+                  style={{
+                    ...styles.row,
+                    ...(role === "user"
+                      ? styles.rowUser
+                      : styles.rowAssistant),
+                  }}
+                >
+                  <div
+                    style={{
+                      ...styles.bubble,
+                      ...(role === "user"
+                        ? styles.bubbleUser
+                        : styles.bubbleAssistant),
+                    }}
+                  >
+                    {text}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <form style={styles.footer} onSubmit={handleSubmit}>
+            <input
+              type="text"
+              placeholder="Type a message"
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              style={styles.input}
+              disabled={sending}
+              aria-label="Message input"
+            />
+            <button
+              type="submit"
+              style={{
+                ...styles.sendBtn,
+                ...(sending || !inputValue.trim()
+                  ? styles.sendBtnDisabled
+                  : {}),
+              }}
+              disabled={sending || !inputValue.trim()}
+              aria-label="Send message"
+            >
+              {sending ? (
+                <span
+                  style={styles.spin}
+                  aria-label="Sending"
+                  role="status"
+                />
+              ) : (
+                "Send"
+              )}
+            </button>
+          </form>
+        </div>
+      )}
+
+      <style>{`
+        @keyframes spin {
+          0% { transform: rotate(0deg);}
+          100% { transform: rotate(360deg);}
+        }
+        @keyframes enter {
+          0% {
+            opacity: 0;
+            transform: translateY(5px);
+          }
+          100% {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+      `}</style>
+    </div>
+  );
+};
