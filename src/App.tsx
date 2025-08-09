@@ -15,7 +15,7 @@ const App = () => (
       <Toaster />
       <Sonner />
 
-      <ChatWidgetVanilla />  {/* <-- Your chat widget */}
+      <ChatWidgetVanilla />
 
       <BrowserRouter>
         <Routes>
