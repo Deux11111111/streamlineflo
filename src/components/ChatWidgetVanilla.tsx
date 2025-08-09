@@ -2,11 +2,15 @@ import React, { useEffect } from "react";
 
 export default function ChatWidgetVanilla() {
   useEffect(() => {
-    // The entire vanilla JS snippet as a string
+    console.log("[ChatWidgetVanilla] useEffect triggered");
+
+    // The entire vanilla JS snippet as a string with debugging logs and fixed WEBHOOK_URL
     const scriptContent = `
       (function () {
+        console.log("[ChatWidgetVanilla] injected script running");
+
         // ========= CONFIG =========
-        const WEBHOOK_URL = "https://hook.eu2.make.com/gonu3z4lcwjujhryw6sh8pns67nylf45;
+        const WEBHOOK_URL = "https://hook.eu2.make.com/gonu3z4lcwjujhryw6sh8pns67nylf45";
         const TITLE = "Chat";
         const SUBTITLE = "Ask anything.";
         const POSITION = "bottom-right"; // "bottom-right" | "bottom-left"
@@ -22,6 +26,8 @@ export default function ChatWidgetVanilla() {
         if (document.getElementById("lw-chat-widget-host")) return;
 
         function run() {
+          console.log("[ChatWidgetVanilla] run() called");
+
           const host = document.createElement("div");
           host.id = "lw-chat-widget-host";
           host.style.all = "initial";
@@ -125,23 +131,20 @@ export default function ChatWidgetVanilla() {
               <span class="lw-glow"></span>
             </button>
 
-            <div class="lw-card lw-hidden" id="lw-panel" role="dialog" aria-label="Chat widget">
+            <div class="lw-card lw-hidden" id="lw-panel" role="region" aria-label="Chat panel">
               <div class="lw-header">
-                <h2 class="lw-title">\${TITLE}</h2>
-                <p class="lw-sub">\${SUBTITLE}</p>
+                <h1 class="lw-title">\${TITLE}</h1>
+                <div class="lw-sub">\${SUBTITLE}</div>
               </div>
-              <div class="lw-body">
+              <div class="lw-body" id="lw-body">
                 <div class="lw-scroll" id="lw-scroll">
-                  <p class="lw-empty" id="lw-empty">Start the conversation below.</p>
+                  <div class="lw-empty">Start chatting!</div>
                 </div>
               </div>
               <form class="lw-footer" id="lw-form">
-                <input class="lw-input" id="lw-input" placeholder="Type your message..." aria-label="Message" />
-                <button class="lw-send" id="lw-send" type="submit">
-                  <svg class="lw-send-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/>
-                  </svg>
-                  <span>Send</span>
+                <input type="text" id="lw-input" class="lw-input" placeholder="Write a message..." autocomplete="off" />
+                <button type="submit" id="lw-send" class="lw-send" aria-label="Send message">
+                  <svg class="lw-send-icon" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
                 </button>
               </form>
             </div>
@@ -152,33 +155,49 @@ export default function ChatWidgetVanilla() {
 
           const toggleBtn = shadow.getElementById("lw-toggle");
           const panel = shadow.getElementById("lw-panel");
-          const input = shadow.getElementById("lw-input");
           const form = shadow.getElementById("lw-form");
+          const input = shadow.getElementById("lw-input");
           const scroll = shadow.getElementById("lw-scroll");
-          const empty = shadow.getElementById("lw-empty");
           const sendBtn = shadow.getElementById("lw-send");
 
           let open = false;
-          let sending = false;
-
-          function setOpen(next) {
-            open = next;
+          toggleBtn.addEventListener("click", () => {
+            open = !open;
             panel.classList.toggle("lw-hidden", !open);
-            toggleBtn.setAttribute("aria-expanded", String(open));
-            toggleBtn.title = open ? "Close chat" : "Open chat";
-            toggleBtn.innerHTML = open
-              ? '<div class="lw-close"><svg class="lw-icon" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg></div><span class="lw-glow"></span>'
-              : '<svg class="lw-icon" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a4 4 0 0 1-4 4H7l-4 4V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"/></svg><span class="lw-glow"></span>';
-            if (open) setTimeout(() => input.focus(), 0);
-            scrollToBottom();
-          }
+            toggleBtn.setAttribute("aria-expanded", open ? "true" : "false");
+            toggleBtn.setAttribute("title", open ? "Close chat" : "Open chat");
+            if (open) input.focus();
+          });
 
-          function scrollToBottom() {
-            scroll.scrollTop = scroll.scrollHeight;
-          }
+          form.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const text = input.value.trim();
+            if (!text) return;
+            addMessage("user", text);
+            input.value = "";
+            input.disabled = true;
+            sendBtn.disabled = true;
 
-          function addBubble(role, text) {
-            if (empty) empty.remove();
+            try {
+              const res = await fetch(WEBHOOK_URL, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ message: text }),
+              });
+              const data = await res.json();
+              addMessage("assistant", data.response || "No response");
+            } catch (err) {
+              console.error("[ChatWidget] Error sending message", err);
+              addMessage("assistant", "Sorry, something went wrong.");
+            } finally {
+              input.disabled = false;
+              sendBtn.disabled = false;
+              input.focus();
+            }
+          });
+
+          function addMessage(role, text) {
+            console.log("[ChatWidgetVanilla] addMessage", role, text);
             const row = document.createElement("div");
             row.className = "lw-row " + role;
             const bubble = document.createElement("div");
@@ -186,97 +205,29 @@ export default function ChatWidgetVanilla() {
             bubble.textContent = text;
             row.appendChild(bubble);
             scroll.appendChild(row);
-            scrollToBottom();
+            scroll.scrollTop = scroll.scrollHeight;
           }
-
-          async function sendMessage(text) {
-            if (!WEBHOOK_URL) {
-              addBubble("assistant", "Webhook URL is not configured.");
-              return;
-            }
-            sending = true;
-            sendBtn.disabled = true;
-            const prev = sendBtn.innerHTML;
-            sendBtn.innerHTML = '<span class="lw-spin"></span><span style="margin-left:8px">Sending</span>';
-
-            try {
-              const res = await fetch(WEBHOOK_URL, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                  message: text,
-                  timestamp: new Date().toISOString(),
-                  origin: window.location.origin
-                }),
-              });
-
-              if (!res.ok) {
-                addBubble("assistant", "Webhook error: " + res.status + " " + res.statusText);
-                return;
-              }
-
-              const ct = res.headers.get("content-type") || "";
-              let reply = "";
-              if (ct.includes("application/json")) {
-                const json = await res.json();
-                reply =
-                  (json && (json.reply || json.message || json.text || json.data)) ??
-                  JSON.stringify(json);
-              } else {
-                reply = await res.text();
-              }
-              reply = (reply || "").toString().trim();
-              if (reply) addBubble("assistant", reply);
-            } catch (err) {
-              console.error("[ChatPopup] webhook error:", err);
-              addBubble("assistant", "Network/CORS error. Ensure your webhook enables CORS.");
-            } finally {
-              sending = false;
-              sendBtn.disabled = false;
-              sendBtn.innerHTML = prev;
-            }
-          }
-
-          toggleBtn.addEventListener("click", () => setOpen(!open));
-
-          form.addEventListener("submit", (e) => {
-            e.preventDefault();
-            if (sending) return;
-            const text = String(input.value || "").trim();
-            if (!text) return;
-            addBubble("user", text);
-            input.value = "";
-            sendMessage(text);
-          });
-
-          input.addEventListener("keydown", (e) => {
-            if (e.key === "Enter" && !e.shiftKey) {
-              e.preventDefault();
-              form.dispatchEvent(new Event("submit", { cancelable: true }));
-            }
-          });
         }
 
-        if (document.readyState === "loading") {
-          document.addEventListener("DOMContentLoaded", run, { once: true });
-        } else {
-          run();
-        }
+        run();
       })();
     `;
 
-    // Inject the script into the page
-    const script = document.createElement("script");
-    script.textContent = scriptContent;
-    document.body.appendChild(script);
+    const scriptEl = document.createElement("script");
+    scriptEl.textContent = scriptContent;
+    document.body.appendChild(scriptEl);
 
-    // Cleanup on unmount
     return () => {
-      document.body.removeChild(script);
-      const existingHost = document.getElementById("lw-chat-widget-host");
-      if (existingHost) existingHost.remove();
+      const existing = document.getElementById("lw-chat-widget-host");
+      if (existing) existing.remove();
+      const scripts = document.querySelectorAll("script");
+      scripts.forEach((s) => {
+        if (s.textContent && s.textContent.includes("ChatWidgetVanilla")) {
+          s.remove();
+        }
+      });
     };
   }, []);
 
-  return null; // This component does not render anything in the React tree itself
+  return null;
 }
