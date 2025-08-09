@@ -1,17 +1,20 @@
-// src/components/ChatWidget.tsx
 import React, { useEffect } from "react";
 
-const ChatWidget: React.FC = () => {
+const ChatWidget = () => {
   useEffect(() => {
+    // IIFE wrapped inside useEffect to run once on mount
     (function () {
-      const WEBHOOK_URL = "https://hook.eu2.make.com/gonu3z4lcwjujhryw6sh8pns67nylf45";
+      const WEBHOOK_URL = "https://hook.eu2.make.com/gonu3z4lcwjujhryw6sh8pns67nylf45"; // set this
       const TITLE = "Chat";
       const SUBTITLE = "Ask anything.";
-      const POSITION = "bottom-right";
-      const PRIMARY = "#4f46e5";
+      const POSITION = "bottom-right"; // "bottom-right" | "bottom-left"
+      const PRIMARY = "#4f46e5"; // indigo
       const PRIMARY_HOVER = "#4338ca";
       const DARK = "#0b1220";
 
+      if (!WEBHOOK_URL || WEBHOOK_URL.includes("your-webhook-url")) {
+        console.warn("[ChatPopup] Please set WEBHOOK_URL in the snippet.");
+      }
       if (document.getElementById("lw-chat-widget-host")) return;
 
       function run() {
@@ -124,9 +127,4 @@ const ChatWidget: React.FC = () => {
               <p class="lw-sub">${SUBTITLE}</p>
             </div>
             <div class="lw-body">
-              <div class="lw-scroll" id="lw-scroll">
-                <p class="lw-empty" id="lw-empty">Start the conversation below.</p>
-              </div>
-            </div>
-            <form class="lw-footer" id="lw-form">
-              <input class="lw-input" id="lw-input" placeholder="Type your message..." aria
+              <div class="lw-scroll" id="
