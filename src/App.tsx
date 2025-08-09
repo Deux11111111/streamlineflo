@@ -14,9 +14,9 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
-      
-      <ChatWidget />  {/* <-- Add it here so it appears on all pages */}
-      
+
+      <ChatWidgetVanilla />  {/* <-- Your chat widget */}
+
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
