@@ -5,7 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
-import ChatWidget from "./components/ChatWidget";  // <-- import your chat widget
+import ChatWidgetVanilla from "./components/ChatWidgetVanilla";
 
 const queryClient = new QueryClient();
 
