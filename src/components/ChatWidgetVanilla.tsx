@@ -47,17 +47,31 @@ export default function ChatWidgetVanilla() {
               color: #111827;
             }
 
-            /* Toggle Button */
-            .lw-btn {
-              width: 48px; height: 48px; border-radius: 999px; border: 0; cursor: pointer; position: relative;
-              color: #fff; background: \${PRIMARY};
-              box-shadow: 0 12px 28px rgba(79,70,229,.35), 0 4px 10px rgba(79,70,229,.25);
-              display: inline-flex; align-items: center; justify-content: center;
-              transition: transform .2s ease, filter .2s ease, box-shadow .2s ease, background .2s ease;
-            }
-            .lw-btn:hover { transform: translateY(-1px); filter: brightness(1.03); background: \${PRIMARY_HOVER}; }
-            .lw-btn .lw-icon { width: 20px; height: 20px; display: block; }
-            .lw-glow { position:absolute; inset:-4px; border-radius:999px; background: radial-gradient(60% 60% at 50% 50%, rgba(79,70,229,.35), rgba(79,70,229,0)); filter: blur(10px); z-index:-1; }
+           toggleBtn.addEventListener("click", () => {
+  open = !open;
+  panel.classList.toggle("lw-hidden", !open);
+  toggleBtn.setAttribute("aria-expanded", open ? "true" : "false");
+  toggleBtn.setAttribute("title", open ? "Close chat" : "Open chat");
+
+  // Swap the icon between chat bubble and X
+  if (open) {
+    toggleBtn.innerHTML = `
+      <svg class="lw-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="18" y1="6" x2="6" y2="18"/>
+        <line x1="6" y1="6" x2="18" y2="18"/>
+      </svg>
+      <span class="lw-glow"></span>
+    `;
+    input.focus();
+  } else {
+    toggleBtn.innerHTML = `
+      <svg class="lw-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 15a4 4 0 0 1-4 4H7l-4 4V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z" />
+      </svg>
+      <span class="lw-glow"></span>
+    `;
+  }
+});
 
             /* Panel (glassy) */
             .lw-card {
