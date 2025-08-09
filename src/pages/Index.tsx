@@ -6,7 +6,7 @@ import Footer from "@/components/Footer";
 
 const Index = () => {
   useEffect(() => {
-    // No chat widget script here for now
+
   }, []);
 
   return (
