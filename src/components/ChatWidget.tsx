@@ -13,8 +13,7 @@ export default function ChatWidget() {
     setMessage("");
 
     try {
-      const res = await fetch("https://hook.eu2.make.com/92hnx6vb6qwcd906peiaf8l9v1h1698c
-", {
+      const res = await fetch("https://hook.eu2.make.com/92hnx6vb6qwcd906peiaf8l9v1h1698c", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message }),
@@ -85,4 +84,23 @@ export default function ChatWidget() {
                 onKeyDown={(e) => e.key === "Enter" && sendMessage()}
               />
               <button
-                onClick={sendMe
+                onClick={sendMessage}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-full text-sm font-medium transition"
+              >
+                Send
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Toggle button */}
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="bg-blue-600 hover:bg-blue-700 text-white p-4 rounded-full shadow-lg transition"
+      >
+        💬
+      </button>
+    </div>
+  );
+}
