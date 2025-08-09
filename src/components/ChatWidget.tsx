@@ -1,106 +1,196 @@
-import { useState, useRef, useEffect } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Loader2, MessageCircle, X } from "lucide-react";
 
-export default function ChatWidget() {
-  const [isOpen, setIsOpen] = useState(false);
-  const [message, setMessage] = useState("");
-  const [chatLog, setChatLog] = useState<{ from: "user" | "bot"; text: string }[]>([]);
-  const chatEndRef = useRef<HTMLDivElement>(null);
+export type ChatMessage = {
+  id: string;
+  role: "user" | "assistant";
+  content: string;
+  createdAt?: number;
+};
+
+export type ChatWidgetProps = {
+  title?: string;
+  subtitle?: string;
+  placeholder?: string;
+  initialMessages?: ChatMessage[];
+  onSend?: (message: string) => Promise<string | void> | string | void;
+  position?: "bottom-right" | "bottom-left";
+};
+
+export default function ChatWidget({
+  title = "Chat",
+  subtitle = "Ask anything and connect this to your API.",
+  placeholder = "Type your message...",
+  initialMessages = [],
+  onSend,
+  position = "bottom-right",
+}: ChatWidgetProps) {
+  const [open, setOpen] = useState(false);
+  const [input, setInput] = useState("");
+  const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
+  const [sending, setSending] = useState(false);
+
+  const scrollRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const el = scrollRef.current;
+    if (!el) return;
+    // Scroll to bottom on open and when messages change
+    el.scrollTop = el.scrollHeight;
+  }, [open, messages.length]);
+
+  const containerPos = useMemo(() => {
+    return position === "bottom-left"
+      ? "left-6 md:left-8"
+      : "right-6 md:right-8";
+  }, [position]);
 
   const sendMessage = async () => {
-    if (!message.trim()) return;
+    const trimmed = input.trim();
+    if (!trimmed || sending) return;
 
-    setChatLog((prev) => [...prev, { from: "user", text: message }]);
-    setMessage("");
+    const userMsg: ChatMessage = {
+      id: crypto.randomUUID(),
+      role: "user",
+      content: trimmed,
+      createdAt: Date.now(),
+    };
+    setMessages((m) => [...m, userMsg]);
+    setInput("");
+    setSending(true);
 
     try {
-      const res = await fetch("https://hook.eu2.make.com/92hnx6vb6qwcd906peiaf8l9v1h1698c", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message }),
-      });
-      const data = await res.json();
-      if (data.reply) {
-        setChatLog((prev) => [...prev, { from: "bot", text: data.reply }]);
+      let reply: string | void;
+      if (onSend) {
+        reply = await onSend(trimmed);
+      } else {
+        // Default demo response
+        await new Promise((r) => setTimeout(r, 500));
+        reply = Echo: ${trimmed};
       }
-    } catch (error) {
-      console.error(error);
-      setChatLog((prev) => [
-        ...prev,
-        { from: "bot", text: "Sorry, something went wrong." },
-      ]);
+      if (reply && reply.length > 0) {
+        const botMsg: ChatMessage = {
+          id: crypto.randomUUID(),
+          role: "assistant",
+          content: reply,
+          createdAt: Date.now(),
+        };
+        setMessages((m) => [...m, botMsg]);
+      }
+    } catch (e) {
+      console.error("Chat send error:", e);
+      // Do not add assistant/error messages in chat; let backend respond instead.
+    } finally {
+      setSending(false);
     }
   };
 
-  useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [chatLog]);
-
   return (
-    <div className="fixed bottom-6 right-6 z-50">
-      {/* Chat window */}
-      <div
-        className={`transition-all duration-300 ease-in-out transform ${
-          isOpen ? "scale-100 opacity-100" : "scale-0 opacity-0"
-        } origin-bottom-right`}
-      >
-        {isOpen && (
-          <div className="w-80 h-[28rem] bg-white border border-gray-200 rounded-3xl shadow-2xl flex flex-col overflow-hidden">
-            {/* Header */}
-            <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-4 font-semibold text-lg">
-              💬 Streamline Flo
-            </div>
-
-            {/* Messages */}
-            <div className="flex-1 p-4 space-y-3 overflow-y-auto text-sm bg-gray-50">
-              {chatLog.map((msg, idx) => (
-                <div
-                  key={idx}
-                  className={`flex ${
-                    msg.from === "user" ? "justify-end" : "justify-start"
-                  }`}
-                >
-                  <div
-                    className={`px-4 py-2 rounded-2xl max-w-[75%] shadow-sm ${
-                      msg.from === "user"
-                        ? "bg-blue-600 text-white rounded-br-none"
-                        : "bg-white text-gray-800 border rounded-bl-none"
-                    }`}
-                  >
-                    {msg.text}
-                  </div>
-                </div>
-              ))}
-              <div ref={chatEndRef} />
-            </div>
-
-            {/* Input */}
-            <div className="p-3 bg-white border-t border-gray-200 flex items-center gap-2">
-              <input
-                type="text"
-                className="flex-1 px-3 py-2 border border-gray-300 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Type a message..."
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-              />
-              <button
-                onClick={sendMessage}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-full text-sm font-medium transition"
-              >
-                Send
-              </button>
-            </div>
-          </div>
-        )}
+    <div className={fixed z-50 bottom-6 md:bottom-8 ${containerPos}}>
+      {/* Floating toggle button */}
+      <div className="flex justify-end">
+        <Button
+          aria-expanded={open}
+          aria-controls="chat-widget-panel"
+          onClick={() => setOpen((v) => !v)}
+          className="rounded-full h-12 w-12 shadow-lg relative"
+          title={open ? "Close chat" : "Open chat"}
+        >
+          {open ? (
+            <X className="h-5 w-5" />
+          ) : (
+            <MessageCircle className="h-5 w-5" />
+          )}
+          {/* Subtle glow */}
+          <span className="pointer-events-none absolute inset-0 -z-10 rounded-full bg-primary/10 blur-xl" />
+        </Button>
       </div>
 
-      {/* Toggle button */}
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="bg-blue-600 hover:bg-blue-700 text-white p-4 rounded-full shadow-lg transition"
-      >
-        💬
-      </button>
+      {/* Panel */}
+      {open && (
+        <Card
+          id="chat-widget-panel"
+          role="dialog"
+          aria-label="Chat widget"
+          className="mt-3 w-[min(90vw,380px)] overflow-hidden shadow-xl"
+        >
+          <header className="px-4 pt-4 pb-3 border-b">
+            <h2 className="text-base font-semibold leading-none tracking-tight">
+              {title}
+            </h2>
+            <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p>
+          </header>
+
+          <div className="h-72">
+            <ScrollArea className="h-full">
+              <div ref={scrollRef} className="px-4 py-3 space-y-3">
+                {messages.length === 0 && (
+                  <p className="text-sm text-muted-foreground">
+                    Start the conversation below.
+                  </p>
+                )}
+                {messages.map((m) => (
+                  <div
+                    key={m.id}
+                    className={
+                      m.role === "user"
+                        ? "flex justify-end"
+                        : "flex justify-start"
+                    }
+                  >
+                    <div
+                      className={
+                        "max-w-[80%] rounded-lg px-3 py-2 text-sm border " +
+                        (m.role === "user"
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-card text-foreground")
+                      }
+                    >
+                      {m.content}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </ScrollArea>
+          </div>
+
+          <form
+            className="p-3 border-t flex items-center gap-2"
+            onSubmit={(e) => {
+              e.preventDefault();
+              sendMessage();
+            }}
+          >
+            <Input
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder={placeholder}
+              aria-label="Message"
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  sendMessage();
+                }
+              }}
+            />
+            <Button type="submit" disabled={sending || input.trim().length === 0}>
+              {sending ? (
+                <span className="inline-flex items-center gap-2">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Send
+                </span>
+              ) : (
+                "Send"
+              )}
+            </Button>
+          </form>
+        </Card>
+      )}
     </div>
   );
 }
