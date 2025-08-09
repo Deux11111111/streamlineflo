@@ -330,7 +330,7 @@ export default function ChatWidgetVanilla() {
               });
               if (!res.ok) throw new Error("Network response was not ok");
               const data = await res.json();
-              addMessage(data.reply || "No response", "assistant");
+              addMessage(data.result || "No response", "assistant");
             } catch (err) {
               addMessage("Sorry, something went wrong.", "assistant");
               console.error(err);
