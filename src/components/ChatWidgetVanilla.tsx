@@ -363,8 +363,8 @@ export default function ChatWidgetVanilla() {
               const data = await res.json();
               console.log("[ChatWidgetVanilla] Response data:", data);
 
-              if (data.result) {
-                addMessage("assistant", data.result);
+              if (data.response) {
+                addMessage("assistant", data.response);
               } else {
                 addMessage("assistant", "No 'result' field in response.");
               }
