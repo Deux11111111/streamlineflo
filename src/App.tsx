@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
+import ChatWidget from "./components/ChatWidget";  // <-- import your chat widget
 
 const queryClient = new QueryClient();
 
@@ -13,6 +14,9 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
+      
+      <ChatWidget />  {/* <-- Add it here so it appears on all pages */}
+      
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
