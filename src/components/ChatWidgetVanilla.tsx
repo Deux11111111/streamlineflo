@@ -106,7 +106,8 @@ export default function ChatWidgetVanilla() {
               animation: enter 0.28s ease-out;
               display: flex;
               flex-direction: column;
-              max-height: 480px;
+              max-height: 600px;
+              min-height: 480px;
             }
             .lw-header {
               padding: 16px 20px 12px;
