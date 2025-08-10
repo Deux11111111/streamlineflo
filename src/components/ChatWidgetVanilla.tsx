@@ -9,7 +9,7 @@ export default function ChatWidgetVanilla() {
         console.log("[ChatWidgetVanilla] injected script running");
 
         // ========= CONFIG =========
-        const WEBHOOK_URL = "https://hook.eu2.make.com/gonu3z4lcwjujhryw6sh8pns67nylf45";
+        const WEBHOOK_URL = "https://adrianzap.app.n8n.cloud/webhook-test/ffccbc0f-3cbc-4011-bdd5-b1e9873f3804";
         const TITLE = "Chat";
         const SUBTITLE = "Ask anything.";
         const POSITION = "bottom-right"; // "bottom-right" | "bottom-left"
@@ -19,7 +19,7 @@ export default function ChatWidgetVanilla() {
         const DARK = "#0b1220";
         // ==========================
 
-        if (!WEBHOOK_URL || WEBHOOK_URL.includes("https://hook.eu2.make.com/gonu3z4lcwjujhryw6sh8pns67nylf45")) {
+        if (!WEBHOOK_URL || WEBHOOK_URL.includes("https://adrianzap.app.n8n.cloud/webhook-test/ffccbc0f-3cbc-4011-bdd5-b1e9873f3804")) {
           console.warn("[ChatPopup] Please set your real WEBHOOK_URL.");
         }
         if (document.getElementById("lw-chat-widget-host")) return;
@@ -270,12 +270,31 @@ export default function ChatWidgetVanilla() {
           const scroll = shadow.getElementById("lw-scroll");
           const form = shadow.getElementById("lw-form");
 
-          toggleBtn.addEventListener("click", () => {
+          toggleBtn.addEventListener("click", async () => {
             const expanded = toggleBtn.getAttribute("aria-expanded") === "true";
             toggleBtn.setAttribute("aria-expanded", !expanded);
             panel.classList.toggle("lw-hidden");
+
             if (!panel.classList.contains("lw-hidden")) {
               input.focus();
+
+              // === Send initial webhook when opened ===
+              try {
+                const res = await fetch(WEBHOOK_URL, {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ message: "start", sessionId })
+                });
+
+                if (!res.ok) throw new Error("Network error: " + res.statusText);
+
+                const data = await res.json();
+                if (data.response) {
+                  addMessage("assistant", data.response);
+                }
+              } catch (err) {
+                console.error("[ChatWidgetVanilla] Initial webhook error", err);
+              }
             }
           });
 
@@ -290,11 +309,8 @@ export default function ChatWidgetVanilla() {
             msgWrap.appendChild(bubble);
             scroll.appendChild(msgWrap);
 
-            // Remove the empty placeholder if it exists
             const empty = scroll.querySelector(".lw-empty");
             if (empty) empty.remove();
-
-            // Scroll to bottom
             scroll.scrollTop = scroll.scrollHeight;
           }
 
@@ -302,7 +318,6 @@ export default function ChatWidgetVanilla() {
             if (!text.trim()) return;
 
             addMessage("user", text);
-
             input.value = "";
             input.disabled = true;
             sendBtn.disabled = true;
@@ -314,15 +329,11 @@ export default function ChatWidgetVanilla() {
                 body: JSON.stringify({ message: text, sessionId }),
               });
 
-              console.log("[ChatWidgetVanilla] Response status:", res.status);
-
               if (!res.ok) {
                 throw new Error("Network response was not ok: " + res.statusText);
               }
 
               const data = await res.json();
-              console.log("[ChatWidgetVanilla] Response data:", data);
-
               if (data.response) {
                 addMessage("assistant", data.response);
               } else {
