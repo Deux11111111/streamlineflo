@@ -289,8 +289,8 @@ export default function ChatWidgetVanilla() {
                 if (!res.ok) throw new Error("Network error: " + res.statusText);
 
                 const data = await res.json();
-                if (data.response) {
-                  addMessage("assistant", data.response);
+                if (data.output) {
+                  addMessage("assistant", data.output);
                 }
               } catch (err) {
                 console.error("[ChatWidgetVanilla] Initial webhook error", err);
@@ -334,8 +334,8 @@ export default function ChatWidgetVanilla() {
               }
 
               const data = await res.json();
-              if (data.response) {
-                addMessage("assistant", data.response);
+              if (data.output) {
+                addMessage("assistant", data.output);
               } else {
                 addMessage("assistant", "No 'response' field in response.");
               }
