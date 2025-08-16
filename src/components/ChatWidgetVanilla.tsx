@@ -31,8 +31,9 @@ export default function ChatWidgetVanilla() {
             return v.toString(16);
           });
         }
-        const sessionId = sessionStorage.getItem("chat_session_id") || generateSessionId();
-        sessionStorage.setItem("chat_session_id", sessionId);
+        // Always generate a new session ID on every page load
+        const sessionId = generateSessionId();
+
 
         function run() {
           console.log("[ChatWidgetVanilla] run() called");
