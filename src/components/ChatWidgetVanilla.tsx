@@ -9,7 +9,7 @@ export default function ChatWidgetVanilla() {
         console.log("[ChatWidgetVanilla] injected script running");
 
         // ========= CONFIG =========
-        const WEBHOOK_URL = "https://adrianzap.app.n8n.cloud/webhook-test/ffccbc0f-3cbc-4011-bdd5-b1e9873f3804";
+        const WEBHOOK_URL = "https://adrianzap.app.n8n.cloud/webhook/c803253c-f26b-4a80-83a5-53fad70dbdb6/chat";
         const TITLE = "Chat";
         const SUBTITLE = "Ask anything.";
         const POSITION = "bottom-right"; // "bottom-right" | "bottom-left"
@@ -19,7 +19,7 @@ export default function ChatWidgetVanilla() {
         const DARK = "#0b1220";
         // ==========================
 
-        if (!WEBHOOK_URL || WEBHOOK_URL.includes("https://adrianzap.app.n8n.cloud/webhook-test/ffccbc0f-3cbc-4011-bdd5-b1e9873f3804")) {
+        if (!WEBHOOK_URL || WEBHOOK_URL.includes("https://adrianzap.app.n8n.cloud/webhook/c803253c-f26b-4a80-83a5-53fad70dbdb6/chat")) {
           console.warn("[ChatPopup] Please set your real WEBHOOK_URL.");
         }
         if (document.getElementById("lw-chat-widget-host")) return;
@@ -284,14 +284,14 @@ export default function ChatWidgetVanilla() {
                 const res = await fetch(WEBHOOK_URL, {
                   method: "POST",
                   headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({ message: "start", sessionId })
+                  body: JSON.stringify({ content: text, sessionId }),
                 });
 
                 if (!res.ok) throw new Error("Network error: " + res.statusText);
 
                 const data = await res.json();
-                if (data.output) {
-                  addMessage("assistant", data.output);
+                if (data.content) {
+                  addMessage("assistant", data.content);
                 }
               } catch (err) {
                 console.error("[ChatWidgetVanilla] Initial webhook error", err);
@@ -327,7 +327,7 @@ export default function ChatWidgetVanilla() {
               const res = await fetch(WEBHOOK_URL, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ message: text, sessionId }),
+                body: JSON.stringify({ content: text, sessionId }),
               });
 
               if (!res.ok) {
@@ -335,11 +335,12 @@ export default function ChatWidgetVanilla() {
               }
 
               const data = await res.json();
-              if (data.output) {
-                addMessage("assistant", data.output);
+              if (data.content) {
+              addMessage("assistant", data.content);
               } else {
-                addMessage("assistant", "No 'response' field in response.");
+              addMessage("assistant", "No 'content' field in response.");
               }
+
             } catch (err) {
               console.error("[ChatWidgetVanilla] Error sending message", err);
               addMessage("assistant", "Sorry, something went wrong.");
