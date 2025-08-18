@@ -101,7 +101,7 @@ export default function ChatWidgetVanilla() {
     import('https://cdn.jsdelivr.net/npm/@n8n/chat/dist/chat.bundle.es.js').then(({ createChat }) => {
       createChat({
         container: chatContainer,
-        webhookUrl: "YOUR_ON_CHAT_MESSAGE_TRIGGER_URL",
+        webhookUrl: "https://adrianzap.app.n8n.cloud/webhook/c803253c-f26b-4a80-83a5-53fad70dbdb6/chat",
         onMessage: (message) => {
           // Render messages inside our lw-body using your design
           const scroll = shadow.getElementById("lw-scroll");
