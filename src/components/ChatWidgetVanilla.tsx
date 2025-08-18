@@ -39,6 +39,191 @@ export default function ChatWidgetVanilla() {
 
           const style = document.createElement("style");
           style.textContent = `
+            @import url('https://fonts.googleapis.com/css2?family=Poppins&display=swap');
+
+            :host, * {
+              box-sizing: border-box;
+              font-family: 'Poppins', sans-serif;
+              -webkit-font-smoothing: antialiased;
+              -moz-osx-font-smoothing: grayscale;
+            }
+            @keyframes spin { to { transform: rotate(360deg); } }
+            @keyframes enter { 0% { opacity: 0; transform: translateY(6px) scale(.98); } 100% { opacity: 1; transform: translateY(0) scale(1); } }
+
+            .lw-root {
+              position: fixed; 
+              z-index: 2147483646; 
+              bottom: 24px;
+              ${POSITION === "bottom-left" ? "left: 24px;" : "right: 24px;"}
+              color: #111827;
+            }
+            .lw-btn {
+              background: ${PRIMARY};
+              border: none;
+              border-radius: 50%;
+              width: 56px;
+              height: 56px;
+              cursor: pointer;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              box-shadow: 0 10px 20px rgba(79, 70, 229, 0.4);
+              transition: background-color 0.25s ease;
+            }
+            .lw-btn:hover {
+              background: ${PRIMARY_HOVER};
+            }
+            .lw-icon {
+              stroke: #fff;
+              width: 24px;
+              height: 24px;
+            }
+            .lw-glow {
+              position: absolute;
+              top: -8px; left: -8px; right: -8px; bottom: -8px;
+              border-radius: 50%;
+              box-shadow: 0 0 10px ${PRIMARY};
+              opacity: 0.6;
+              pointer-events: none;
+            }
+
+            /* Chat panel */
+            .lw-card {
+              margin-top: 12px; 
+              width: min(90vw, 380px); 
+              border-radius: 18px; 
+              overflow: hidden;
+              background: rgba(255, 255, 255, 0.9); 
+              border: 1.5px solid rgba(79, 70, 229, 0.3);
+              box-shadow: 0 25px 60px rgba(79, 70, 229, 0.25);
+              backdrop-filter: blur(15px);
+              animation: enter 0.28s ease-out;
+              display: flex;
+              flex-direction: column;
+              max-height: 520px;
+              min-height: 480px;
+            }
+            .lw-header {
+              padding: 16px 20px 12px;
+              border-bottom: 1px solid rgba(79, 70, 229, 0.15);
+              background: linear-gradient(90deg, rgba(79, 70, 229, 0.15), rgba(79, 70, 229, 0));
+            }
+            .lw-title {
+              margin: 0;
+              font-size: 18px;
+              font-weight: 700;
+              color: ${PRIMARY};
+            }
+            .lw-sub {
+              margin-top: 6px;
+              font-size: 13px;
+              color: #6b7280;
+              font-weight: 500;
+            }
+            .lw-body {
+              flex: 1;
+              overflow-y: auto;
+              padding: 16px 20px;
+              scroll-behavior: smooth;
+            }
+            .lw-empty {
+              font-size: 14px;
+              color: #9ca3af;
+              text-align: center;
+              margin-top: 32px;
+            }
+            .lw-row {
+              display: flex;
+              margin-bottom: 12px;
+            }
+            .lw-row.user {
+              justify-content: flex-end;
+            }
+            .lw-row.assistant {
+              justify-content: flex-start;
+            }
+            .lw-bubble {
+              max-width: 75%;
+              padding: 12px 16px;
+              border-radius: 20px;
+              font-size: 14px;
+              line-height: 1.4;
+              animation: enter 0.25s ease-out;
+              box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            }
+            .lw-bubble.user {
+              background-color: ${PRIMARY};
+              color: white;
+              box-shadow: 0 8px 20px rgba(79, 70, 229, 0.4);
+            }
+            .lw-bubble.assistant {
+              background-color: #f3f4f6;
+              color: #111827;
+              border: 1px solid rgba(79, 70, 229, 0.15);
+            }
+
+            .lw-footer {
+              display: flex;
+              gap: 12px;
+              border-top: 1px solid rgba(79, 70, 229, 0.15);
+              padding: 12px 16px;
+              background: rgba(255, 255, 255, 0.85);
+              backdrop-filter: blur(10px);
+            }
+            .lw-input {
+              flex: 1;
+              height: 46px;
+              padding: 0 20px;
+              border-radius: 24px;
+              font-size: 15px;
+              border: 2.5px solid ${PRIMARY};
+              outline: none;
+              transition: border-color 0.3s ease;
+              color: #111827;
+              background: #fff;
+              font-weight: 500;
+              font-family: 'Poppins', sans-serif;
+            }
+            .lw-input::placeholder {
+              color: #a5b4fc;
+              font-weight: 400;
+            }
+            .lw-input:focus {
+              border-color: ${PRIMARY_HOVER};
+              box-shadow: 0 0 12px rgba(79, 70, 229, 0.5);
+              background: #fff;
+            }
+            .lw-send {
+              background: ${DARK};
+              color: white;
+              border: none;
+              border-radius: 50%;
+              width: 46px;
+              height: 46px;
+              cursor: pointer;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              box-shadow: 0 10px 25px rgba(11, 18, 32, 0.4);
+              transition: background-color 0.3s ease;
+            }
+            .lw-send:hover {
+              background: #151e3f;
+            }
+            .lw-send:disabled {
+              opacity: 0.6;
+              cursor: not-allowed;
+            }
+            .lw-send-icon {
+              stroke: white;
+              width: 22px;
+              height: 22px;
+            }
+            .lw-hidden {
+              display: none;
+            }
+
+            /* Typing animation */
             @keyframes blink { 0% {opacity: .2;} 20% {opacity:1;} 100%{opacity:.2;} }
             .typing span { animation: blink 1.4s infinite both; }
             .typing span:nth-child(2){ animation-delay: .2s; }
@@ -125,7 +310,6 @@ export default function ChatWidgetVanilla() {
             input.value = "";
             sendBtn.disabled = true;
 
-            // add typing...
             const typingEl = addTypingIndicator();
 
             try {
@@ -180,3 +364,4 @@ export default function ChatWidgetVanilla() {
 
   return null;
 }
+
