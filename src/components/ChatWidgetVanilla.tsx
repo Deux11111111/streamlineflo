@@ -137,7 +137,7 @@ export default function ChatWidgetN8N() {
             margin: 0;
             font-size: 18px;
             font-weight: 700;
-            color: ` + PRIMARY + `;
+            color: ${PRIMARY};
           }
           
           .lw-sub {
