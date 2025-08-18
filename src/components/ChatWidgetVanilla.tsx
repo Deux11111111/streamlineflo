@@ -37,60 +37,58 @@ export default function ChatWidgetVanilla() {
         shadow.appendChild(fontLink);
 
         const style = document.createElement("style");
-        style.textContent = `
+        style.textContent = \`
           * { box-sizing: border-box; font-family: 'Poppins', sans-serif; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
           .lw-root { position: fixed; bottom: 1rem; right: 1rem; z-index: 99999; }
-          .lw-btn { background: ${PRIMARY}; border: none; border-radius: 50%; width: 56px; height: 56px; cursor: pointer; color: white; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 6px rgba(0,0,0,0.2); }
-          .lw-btn:hover { background: ${PRIMARY_HOVER}; }
+          .lw-btn { background: \${PRIMARY}; border: none; border-radius: 50%; width: 56px; height: 56px; cursor: pointer; color: white; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 6px rgba(0,0,0,0.2); }
+          .lw-btn:hover { background: \${PRIMARY_HOVER}; }
           .lw-card { width: 320px; max-height: 400px; background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.2); display: flex; flex-direction: column; overflow: hidden; position: absolute; bottom: 70px; right: 0; }
           .lw-hidden { display: none; }
-          .lw-header { background: ${PRIMARY}; color: white; padding: 1rem; }
+          .lw-header { background: \${PRIMARY}; color: white; padding: 1rem; }
           .lw-title { margin: 0; font-size: 1rem; font-weight: bold; }
           .lw-sub { margin: 0; font-size: 0.85rem; opacity: 0.8; }
           .lw-body { flex: 1; padding: 1rem; overflow-y: auto; background: #f9f9f9; }
           .lw-empty { color: #666; text-align: center; font-size: 0.9rem; }
           .lw-footer { display: flex; border-top: 1px solid #ddd; }
           .lw-input { flex: 1; border: none; padding: 0.75rem; font-size: 0.9rem; outline: none; }
-          .lw-send { background: none; border: none; padding: 0 1rem; cursor: pointer; color: ${PRIMARY}; }
+          .lw-send { background: none; border: none; padding: 0 1rem; cursor: pointer; color: \${PRIMARY}; }
           .lw-send:disabled { opacity: 0.5; cursor: not-allowed; }
           .lw-row { display: flex; margin-bottom: 0.5rem; }
           .lw-row.user { justify-content: flex-end; }
           .lw-row.assistant { justify-content: flex-start; }
           .lw-bubble { padding: 0.5rem 0.75rem; border-radius: 12px; max-width: 75%; font-size: 0.9rem; }
-          .lw-bubble.user { background: ${PRIMARY}; color: white; border-bottom-right-radius: 4px; }
-          .lw-bubble.assistant { background: #e5e7eb; color: ${DARK}; border-bottom-left-radius: 4px; }
+          .lw-bubble.user { background: \${PRIMARY}; color: white; border-bottom-right-radius: 4px; }
+          .lw-bubble.assistant { background: #e5e7eb; color: \${DARK}; border-bottom-left-radius: 4px; }
           @keyframes blink { 0% {opacity: .2;} 20% {opacity:1;} 100%{opacity:.2;} }
           .typing span { animation: blink 1.4s infinite both; }
           .typing span:nth-child(2){ animation-delay: .2s; }
           .typing span:nth-child(3){ animation-delay: .4s; }
-        `;
+        \`;
 
         const wrap = document.createElement("div");
         wrap.className = "lw-root";
         shadow.appendChild(style);
         shadow.appendChild(wrap);
 
-        // Button with chat icon
         const toggleBtn = document.createElement("button");
         toggleBtn.className = "lw-btn";
         toggleBtn.setAttribute("aria-expanded", "false");
         toggleBtn.setAttribute("aria-controls", "lw-panel");
         toggleBtn.setAttribute("title", "Open chat");
-        toggleBtn.innerHTML = `
+        toggleBtn.innerHTML = \`
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="24" height="24">
             <path d="M21 15a4 4 0 0 1-4 4H7l-4 4V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z" />
           </svg>
-        `;
+        \`;
         wrap.appendChild(toggleBtn);
 
-        // Chat panel
         const panel = document.createElement("div");
         panel.className = "lw-card lw-hidden";
         panel.id = "lw-panel";
-        panel.innerHTML = `
+        panel.innerHTML = \`
           <div class="lw-header">
-            <h1 class="lw-title">${TITLE}</h1>
-            <p class="lw-sub">${SUBTITLE}</p>
+            <h1 class="lw-title">\${TITLE}</h1>
+            <p class="lw-sub">\${SUBTITLE}</p>
           </div>
           <div class="lw-body" id="lw-scroll">
             <div class="lw-empty">Start the conversation...</div>
@@ -104,7 +102,7 @@ export default function ChatWidgetVanilla() {
               </svg>
             </button>
           </form>
-        `;
+        \`;
         wrap.appendChild(panel);
 
         toggleBtn.addEventListener("click", () => {
@@ -121,15 +119,24 @@ export default function ChatWidgetVanilla() {
 
         function addMessage(role, text) {
           const msgWrap = document.createElement("div");
-          msgWrap.className = `lw-row ${role}`;
+          msgWrap.className = \`lw-row \${role}\`;
           const bubble = document.createElement("div");
-          bubble.className = `lw-bubble ${role}`;
+          bubble.className = \`lw-bubble \${role}\`;
           bubble.textContent = text;
           msgWrap.appendChild(bubble);
           scroll.appendChild(msgWrap);
           const empty = scroll.querySelector(".lw-empty");
           if (empty) empty.style.display = "none";
-          scroll.scrollTop = scroll.scrollHeight;
+          scroll.scroll({ top: scroll.scrollHeight, behavior: 'smooth' });
+        }
+
+        function showTypingIndicator() {
+          const typing = document.createElement("div");
+          typing.className = "lw-row assistant typing";
+          typing.innerHTML = '<div class="lw-bubble assistant"><span>.</span><span>.</span><span>.</span></div>';
+          scroll.appendChild(typing);
+          scroll.scroll({ top: scroll.scrollHeight, behavior: 'smooth' });
+          return typing;
         }
 
         form.addEventListener("submit", async (e) => {
@@ -140,6 +147,8 @@ export default function ChatWidgetVanilla() {
           input.value = '';
           sendBtn.disabled = true;
 
+          const typingEl = showTypingIndicator();
+
           try {
             const response = await fetch(WEBHOOK_URL, {
               method: 'POST',
@@ -147,8 +156,10 @@ export default function ChatWidgetVanilla() {
               body: JSON.stringify({ sessionId, message })
             });
             const data = await response.json();
+            typingEl.remove();
             addMessage('assistant', data.reply || 'Sorry, no response.');
           } catch (err) {
+            typingEl.remove();
             addMessage('assistant', 'Error sending message.');
           }
         });
@@ -160,9 +171,17 @@ export default function ChatWidgetVanilla() {
     `;
 
     const scriptEl = document.createElement('script');
-    scriptEl.textContent = scriptContent;
+    scriptEl.type = 'text/javascript';
+    scriptEl.text = scriptContent;
     document.body.appendChild(scriptEl);
+
+    return () => {
+      document.body.removeChild(scriptEl);
+      const host = document.getElementById("lw-chat-widget-host");
+      if (host) document.body.removeChild(host);
+    };
   }, []);
 
   return null;
 }
+
