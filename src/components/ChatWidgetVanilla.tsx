@@ -12,7 +12,6 @@ export default function ChatWidgetVanilla() {
         const WEBHOOK_URL = "https://adrianzap.app.n8n.cloud/webhook/c803253c-f26b-4a80-83a5-53fad70dbdb6/chat";
         const TITLE = "Chat";
         const SUBTITLE = "Ask anything.";
-        const POSITION = "bottom-right"; // "bottom-right" | "bottom-left"
         const PRIMARY = "#4f46e5";
         const PRIMARY_HOVER = "#4338ca";
         const DARK = "#0b1220";
@@ -37,191 +36,42 @@ export default function ChatWidgetVanilla() {
           const shadow = host.attachShadow({ mode: "open" });
           document.body.appendChild(host);
 
+          // ✅ load Google Font into Shadow DOM
+          const fontLink = document.createElement("link");
+          fontLink.rel = "stylesheet";
+          fontLink.href = "https://fonts.googleapis.com/css2?family=Poppins&display=swap";
+          shadow.appendChild(fontLink);
+
           const style = document.createElement("style");
           style.textContent = `
-            @import url('https://fonts.googleapis.com/css2?family=Poppins&display=swap');
-
             :host, * {
               box-sizing: border-box;
               font-family: 'Poppins', sans-serif;
               -webkit-font-smoothing: antialiased;
               -moz-osx-font-smoothing: grayscale;
             }
-            @keyframes spin { to { transform: rotate(360deg); } }
-            @keyframes enter { 0% { opacity: 0; transform: translateY(6px) scale(.98); } 100% { opacity: 1; transform: translateY(0) scale(1); } }
 
-            .lw-root {
-              position: fixed; 
-              z-index: 2147483646; 
-              bottom: 24px;
-              ${POSITION === "bottom-left" ? "left: 24px;" : "right: 24px;"}
-              color: #111827;
-            }
-            .lw-btn {
-              background: ${PRIMARY};
-              border: none;
-              border-radius: 50%;
-              width: 56px;
-              height: 56px;
-              cursor: pointer;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              box-shadow: 0 10px 20px rgba(79, 70, 229, 0.4);
-              transition: background-color 0.25s ease;
-            }
-            .lw-btn:hover {
-              background: ${PRIMARY_HOVER};
-            }
-            .lw-icon {
-              stroke: #fff;
-              width: 24px;
-              height: 24px;
-            }
-            .lw-glow {
-              position: absolute;
-              top: -8px; left: -8px; right: -8px; bottom: -8px;
-              border-radius: 50%;
-              box-shadow: 0 0 10px ${PRIMARY};
-              opacity: 0.6;
-              pointer-events: none;
-            }
-
-            /* Chat panel */
-            .lw-card {
-              margin-top: 12px; 
-              width: min(90vw, 380px); 
-              border-radius: 18px; 
-              overflow: hidden;
-              background: rgba(255, 255, 255, 0.9); 
-              border: 1.5px solid rgba(79, 70, 229, 0.3);
-              box-shadow: 0 25px 60px rgba(79, 70, 229, 0.25);
-              backdrop-filter: blur(15px);
-              animation: enter 0.28s ease-out;
-              display: flex;
-              flex-direction: column;
-              max-height: 520px;
-              min-height: 480px;
-            }
-            .lw-header {
-              padding: 16px 20px 12px;
-              border-bottom: 1px solid rgba(79, 70, 229, 0.15);
-              background: linear-gradient(90deg, rgba(79, 70, 229, 0.15), rgba(79, 70, 229, 0));
-            }
-            .lw-title {
-              margin: 0;
-              font-size: 18px;
-              font-weight: 700;
-              color: ${PRIMARY};
-            }
-            .lw-sub {
-              margin-top: 6px;
-              font-size: 13px;
-              color: #6b7280;
-              font-weight: 500;
-            }
-            .lw-body {
-              flex: 1;
-              overflow-y: auto;
-              padding: 16px 20px;
-              scroll-behavior: smooth;
-            }
-            .lw-empty {
-              font-size: 14px;
-              color: #9ca3af;
-              text-align: center;
-              margin-top: 32px;
-            }
-            .lw-row {
-              display: flex;
-              margin-bottom: 12px;
-            }
-            .lw-row.user {
-              justify-content: flex-end;
-            }
-            .lw-row.assistant {
-              justify-content: flex-start;
-            }
-            .lw-bubble {
-              max-width: 75%;
-              padding: 12px 16px;
-              border-radius: 20px;
-              font-size: 14px;
-              line-height: 1.4;
-              animation: enter 0.25s ease-out;
-              box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-            }
-            .lw-bubble.user {
-              background-color: ${PRIMARY};
-              color: white;
-              box-shadow: 0 8px 20px rgba(79, 70, 229, 0.4);
-            }
-            .lw-bubble.assistant {
-              background-color: #f3f4f6;
-              color: #111827;
-              border: 1px solid rgba(79, 70, 229, 0.15);
-            }
-
-            .lw-footer {
-              display: flex;
-              gap: 12px;
-              border-top: 1px solid rgba(79, 70, 229, 0.15);
-              padding: 12px 16px;
-              background: rgba(255, 255, 255, 0.85);
-              backdrop-filter: blur(10px);
-            }
-            .lw-input {
-              flex: 1;
-              height: 46px;
-              padding: 0 20px;
-              border-radius: 24px;
-              font-size: 15px;
-              border: 2.5px solid ${PRIMARY};
-              outline: none;
-              transition: border-color 0.3s ease;
-              color: #111827;
-              background: #fff;
-              font-weight: 500;
-              font-family: 'Poppins', sans-serif;
-            }
-            .lw-input::placeholder {
-              color: #a5b4fc;
-              font-weight: 400;
-            }
-            .lw-input:focus {
-              border-color: ${PRIMARY_HOVER};
-              box-shadow: 0 0 12px rgba(79, 70, 229, 0.5);
-              background: #fff;
-            }
-            .lw-send {
-              background: ${DARK};
-              color: white;
-              border: none;
-              border-radius: 50%;
-              width: 46px;
-              height: 46px;
-              cursor: pointer;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              box-shadow: 0 10px 25px rgba(11, 18, 32, 0.4);
-              transition: background-color 0.3s ease;
-            }
-            .lw-send:hover {
-              background: #151e3f;
-            }
-            .lw-send:disabled {
-              opacity: 0.6;
-              cursor: not-allowed;
-            }
-            .lw-send-icon {
-              stroke: white;
-              width: 22px;
-              height: 22px;
-            }
-            .lw-hidden {
-              display: none;
-            }
+            /* === Your Full Widget CSS === */
+            .lw-root { position: fixed; bottom: 1rem; right: 1rem; z-index: 99999; }
+            .lw-btn { background: ${PRIMARY}; border: none; border-radius: 50%; width: 56px; height: 56px; cursor: pointer; color: white; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 6px rgba(0,0,0,0.2); }
+            .lw-btn:hover { background: ${PRIMARY_HOVER}; }
+            .lw-card { width: 320px; max-height: 400px; background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.2); display: flex; flex-direction: column; overflow: hidden; position: absolute; bottom: 70px; right: 0; }
+            .lw-hidden { display: none; }
+            .lw-header { background: ${PRIMARY}; color: white; padding: 1rem; }
+            .lw-title { margin: 0; font-size: 1rem; font-weight: bold; }
+            .lw-sub { margin: 0; font-size: 0.85rem; opacity: 0.8; }
+            .lw-body { flex: 1; padding: 1rem; overflow-y: auto; background: #f9f9f9; }
+            .lw-empty { color: #666; text-align: center; font-size: 0.9rem; }
+            .lw-footer { display: flex; border-top: 1px solid #ddd; }
+            .lw-input { flex: 1; border: none; padding: 0.75rem; font-size: 0.9rem; outline: none; }
+            .lw-send { background: none; border: none; padding: 0 1rem; cursor: pointer; color: ${PRIMARY}; }
+            .lw-send:disabled { opacity: 0.5; cursor: not-allowed; }
+            .lw-row { display: flex; margin-bottom: 0.5rem; }
+            .lw-row.user { justify-content: flex-end; }
+            .lw-row.assistant { justify-content: flex-start; }
+            .lw-bubble { padding: 0.5rem 0.75rem; border-radius: 12px; max-width: 75%; font-size: 0.9rem; }
+            .lw-bubble.user { background: ${PRIMARY}; color: white; border-bottom-right-radius: 4px; }
+            .lw-bubble.assistant { background: #e5e7eb; color: ${DARK}; border-bottom-left-radius: 4px; }
 
             /* Typing animation */
             @keyframes blink { 0% {opacity: .2;} 20% {opacity:1;} 100%{opacity:.2;} }
@@ -237,7 +87,6 @@ export default function ChatWidgetVanilla() {
               <svg class="lw-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M21 15a4 4 0 0 1-4 4H7l-4 4V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z" />
               </svg>
-              <span class="lw-glow"></span>
             </button>
 
             <div class="lw-card lw-hidden" id="lw-panel">
@@ -310,6 +159,7 @@ export default function ChatWidgetVanilla() {
             input.value = "";
             sendBtn.disabled = true;
 
+            // add typing...
             const typingEl = addTypingIndicator();
 
             try {
@@ -342,7 +192,6 @@ export default function ChatWidgetVanilla() {
           input.addEventListener("input", () => {
             sendBtn.disabled = input.value.trim().length === 0;
           });
-
         }
         run();
       })();
@@ -364,4 +213,3 @@ export default function ChatWidgetVanilla() {
 
   return null;
 }
-
