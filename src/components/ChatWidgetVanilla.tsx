@@ -44,7 +44,7 @@ export default function ChatWidgetVanilla() {
 
           const style = document.createElement("style");
           style.textContent = `
-            :host, * {
+            * {
               box-sizing: border-box;
               font-family: 'Poppins', sans-serif;
               -webkit-font-smoothing: antialiased;
