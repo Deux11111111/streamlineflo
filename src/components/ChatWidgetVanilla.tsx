@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 
 export default function ChatWidgetVanilla() {
   useEffect(() => {
@@ -10,7 +10,7 @@ export default function ChatWidgetVanilla() {
     }
 
     // ========= CONFIG =========
-    const N8N_WEBHOOK_URL = "https://adrianzap.app.n8n.cloud/webhook/c803253c-f26b-4a80-83a5-53fad70dbdb6";
+    const N8N_CHAT_URL = "https://adrianzap.app.n8n.cloud/webhook/c803253c-f26b-4a80-83a5-53fad70dbdb6/chat";
     const TITLE = "Chat";
     const SUBTITLE = "Ask anything.";
     const POSITION = "bottom-right";
@@ -29,7 +29,7 @@ export default function ChatWidgetVanilla() {
 
     const sessionId = generateSessionId();
 
-    // Create the widget
+    // Create the widget with your exact design
     const host = document.createElement("div");
     host.id = "lw-chat-widget-host";
     host.style.cssText = "all: initial; position: fixed; z-index: 2147483646; bottom: 24px; " + 
@@ -37,13 +37,14 @@ export default function ChatWidgetVanilla() {
 
     const shadowRoot = host.attachShadow({ mode: "open" });
     
-    // Create styles
+    // Your exact original styles
     const style = document.createElement("style");
     const cssRules = [
       "@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');",
       ":host, * { box-sizing: border-box; font-family: 'Poppins', sans-serif; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }",
       "@keyframes spin { to { transform: rotate(360deg); } }",
       "@keyframes enter { 0% { opacity: 0; transform: translateY(6px) scale(.98); } 100% { opacity: 1; transform: translateY(0) scale(1); } }",
+      ".lw-root { color: #111827; }",
       ".lw-btn { background: " + PRIMARY + "; border: none; border-radius: 50%; width: 56px; height: 56px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 20px rgba(79, 70, 229, 0.4); transition: background-color 0.25s ease; position: relative; }",
       ".lw-btn:hover { background: " + PRIMARY_HOVER + "; }",
       ".lw-icon { stroke: #fff; width: 24px; height: 24px; }",
@@ -71,130 +72,189 @@ export default function ChatWidgetVanilla() {
       ".lw-hidden { display: none; }"
     ];
     
-    style.textContent = cssRules.join("\n");
+    style.textContent = cssRules.join("\\n");
 
-    // Create HTML structure
+    // Your exact original HTML structure
     const container = document.createElement("div");
-    container.innerHTML = '<button class="lw-btn" id="lw-toggle" aria-expanded="false" aria-controls="lw-panel" title="Open chat">' +
-      '<svg class="lw-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
-      '<path d="M21 15a4 4 0 0 1-4 4H7l-4 4V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z" />' +
-      '</svg>' +
-      '<span class="lw-glow"></span>' +
+    container.className = "lw-root";
+    container.innerHTML = 
+      '<button class="lw-btn" id="lw-toggle" aria-expanded="false" aria-controls="lw-panel" title="Open chat">' +
+        '<svg class="lw-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
+          '<path d="M21 15a4 4 0 0 1-4 4H7l-4 4V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z" />' +
+        '</svg>' +
+        '<span class="lw-glow"></span>' +
       '</button>' +
       '<div class="lw-card lw-hidden" id="lw-panel" role="region" aria-live="polite" aria-label="Chat panel">' +
-      '<div class="lw-header">' +
-      '<h1 class="lw-title">' + TITLE + '</h1>' +
-      '<p class="lw-sub">' + SUBTITLE + '</p>' +
-      '</div>' +
-      '<div class="lw-body" id="lw-scroll" tabindex="0">' +
-      '<div class="lw-empty">Start the conversation...</div>' +
-      '</div>' +
-      '<form class="lw-footer" id="lw-form" autocomplete="off">' +
-      '<input class="lw-input" id="lw-input" placeholder="Type your message…" aria-label="Type your message" autocomplete="off" />' +
-      '<button type="submit" class="lw-send" id="lw-send" aria-label="Send message" disabled>' +
-      '<svg class="lw-send-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
-      '<line x1="22" y1="2" x2="11" y2="13" />' +
-      '<polygon points="22 2 15 22 11 13 2 9 22 2" />' +
-      '</svg>' +
-      '</button>' +
-      '</form>' +
+        '<div class="lw-header">' +
+          '<h1 class="lw-title">' + TITLE + '</h1>' +
+          '<p class="lw-sub">' + SUBTITLE + '</p>' +
+        '</div>' +
+        '<div class="lw-body" id="lw-scroll" tabindex="0">' +
+          '<div class="lw-empty">Start the conversation...</div>' +
+        '</div>' +
+        '<form class="lw-footer" id="lw-form" autocomplete="off">' +
+          '<input class="lw-input" id="lw-input" placeholder="Type your message…" aria-label="Type your message" autocomplete="off" />' +
+          '<button type="submit" class="lw-send" id="lw-send" aria-label="Send message" disabled>' +
+            '<svg class="lw-send-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
+              '<line x1="22" y1="2" x2="11" y2="13" />' +
+              '<polygon points="22 2 15 22 11 13 2 9 22 2" />' +
+            '</svg>' +
+          '</button>' +
+        '</form>' +
       '</div>';
 
     shadowRoot.appendChild(style);
     shadowRoot.appendChild(container);
 
-    const toggleBtn = shadowRoot.getElementById("lw-toggle");
-    const panel = shadowRoot.getElementById("lw-panel");
-    const input = shadowRoot.getElementById("lw-input");
-    const sendBtn = shadowRoot.getElementById("lw-send");
-    const scroll = shadowRoot.getElementById("lw-scroll");
-    const form = shadowRoot.getElementById("lw-form");
-
-    function addMessage(role, text) {
-      const msgWrap = document.createElement("div");
-      msgWrap.className = "lw-row " + role;
-      const bubble = document.createElement("div");
-      bubble.className = "lw-bubble " + role;
-      bubble.textContent = text;
-      msgWrap.appendChild(bubble);
-      scroll.appendChild(msgWrap);
-      const empty = scroll.querySelector(".lw-empty");
-      if (empty) empty.remove();
-      scroll.scrollTop = scroll.scrollHeight;
-    }
-
-    async function sendMessage(text) {
-      if (!text.trim()) return;
-      addMessage("user", text);
-      input.value = "";
-      input.disabled = true;
-      sendBtn.disabled = true;
+    // Load n8n chat SDK (hidden)
+    const script = document.createElement('script');
+    script.type = 'module';
+    script.textContent = `
+      import { createChat } from 'https://cdn.jsdelivr.net/npm/@n8n/chat/dist/chat.bundle.es.js';
       
-      try {
-        const res = await fetch(N8N_WEBHOOK_URL, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ 
-            action: "sendMessage",
-            sessionId: sessionId,
-            message: text
-          }),
-        });
+      // Create n8n chat but hide it completely
+      const n8nChat = createChat({
+        webhookUrl: '${N8N_CHAT_URL}',
+        target: '#n8n-chat-custom',
+        chatSessionKey: 'sessionId',
+        chatInputKey: 'chatInput',
+        loadPreviousSession: false,
+        showWelcomeScreen: false,
+        initialMessages: []
+      });
+
+      // Hide n8n's default UI completely
+      setTimeout(() => {
+        const n8nWidget = document.querySelector('#n8n-chat-custom');
+        if (n8nWidget) {
+          n8nWidget.style.display = 'none';
+        }
+      }, 100);
+
+      // Make n8n chat accessible globally so our custom UI can use it
+      window.n8nChatInstance = n8nChat;
+    `;
+    document.body.appendChild(script);
+
+    // Set up your custom UI after n8n loads
+    setTimeout(() => {
+      const toggleBtn = shadowRoot.getElementById("lw-toggle");
+      const panel = shadowRoot.getElementById("lw-panel");
+      const input = shadowRoot.getElementById("lw-input");
+      const sendBtn = shadowRoot.getElementById("lw-send");
+      const scroll = shadowRoot.getElementById("lw-scroll");
+      const form = shadowRoot.getElementById("lw-form");
+
+      if (!toggleBtn || !panel || !input || !sendBtn || !scroll || !form) {
+        console.error("Could not find chat elements");
+        return;
+      }
+
+      function addMessage(role, text) {
+        const msgWrap = document.createElement("div");
+        msgWrap.className = "lw-row " + role;
+        const bubble = document.createElement("div");
+        bubble.className = "lw-bubble " + role;
+        bubble.textContent = text;
+        msgWrap.appendChild(bubble);
+        scroll.appendChild(msgWrap);
+        const empty = scroll.querySelector(".lw-empty");
+        if (empty) empty.remove();
+        scroll.scrollTop = scroll.scrollHeight;
+      }
+
+      async function sendMessage(text) {
+        if (!text.trim()) return;
         
-        if (!res.ok) throw new Error("Network response was not ok: " + res.statusText);
-        const data = await res.json();
+        addMessage("user", text);
+        input.value = "";
+        input.disabled = true;
+        sendBtn.disabled = true;
         
-        if (data.output || data.response || data.message) {
-          const reply = data.output || data.response || data.message;
+        try {
+          // Use n8n's chat API with proper format
+          const response = await fetch(N8N_CHAT_URL, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              chatInput: text,
+              sessionId: sessionId
+            })
+          });
+
+          if (!response.ok) {
+            throw new Error("Network response was not ok: " + response.statusText);
+          }
+
+          const data = await response.json();
+          console.log("N8N Response:", data);
+          
+          // Handle different possible response formats from n8n
+          let reply = "I received your message!";
+          if (data.output) {
+            reply = data.output;
+          } else if (data.response) {
+            reply = data.response;
+          } else if (data.message) {
+            reply = data.message;
+          } else if (data.text) {
+            reply = data.text;
+          } else if (typeof data === 'string') {
+            reply = data;
+          }
+          
           addMessage("assistant", reply);
-        } else {
-          addMessage("assistant", "I received your message!");
+          
+        } catch (err) {
+          console.error("[ChatWidgetVanilla] Error sending message", err);
+          addMessage("assistant", "Sorry, something went wrong.");
+        } finally {
+          input.disabled = false;
+          sendBtn.disabled = false;
+          input.focus();
         }
-      } catch (err) {
-        console.error("[CustomN8NChatWidget] Error sending message", err);
-        addMessage("assistant", "Sorry, something went wrong.");
-      } finally {
-        input.disabled = false;
-        sendBtn.disabled = false;
-        input.focus();
       }
-    }
 
-    // Event listeners
-    toggleBtn.addEventListener("click", function() {
-      const expanded = toggleBtn.getAttribute("aria-expanded") === "true";
-      toggleBtn.setAttribute("aria-expanded", (!expanded).toString());
-      panel.classList.toggle("lw-hidden");
-      if (!panel.classList.contains("lw-hidden")) {
-        input.focus();
-      }
-    });
+      // Event listeners
+      toggleBtn.addEventListener("click", function() {
+        const expanded = toggleBtn.getAttribute("aria-expanded") === "true";
+        toggleBtn.setAttribute("aria-expanded", (!expanded).toString());
+        panel.classList.toggle("lw-hidden");
+        if (!panel.classList.contains("lw-hidden")) {
+          input.focus();
+        }
+      });
 
-    form.addEventListener("submit", function(e) {
-      e.preventDefault();
-      sendMessage(input.value);
-    });
-
-    input.addEventListener("input", function() {
-      sendBtn.disabled = input.value.trim().length === 0;
-    });
-
-    input.addEventListener("keydown", function(e) {
-      if (e.key === "Enter" && !e.shiftKey) {
+      form.addEventListener("submit", function(e) {
         e.preventDefault();
-        if (!sendBtn.disabled) {
-          sendMessage(input.value);
+        sendMessage(input.value);
+      });
+
+      input.addEventListener("input", function() {
+        sendBtn.disabled = input.value.trim().length === 0;
+      });
+
+      input.addEventListener("keydown", function(e) {
+        if (e.key === "Enter" && !e.shiftKey) {
+          e.preventDefault();
+          if (!sendBtn.disabled) {
+            sendMessage(input.value);
+          }
         }
-      }
-    });
+      });
+
+    }, 1500); // Wait for n8n to fully load
 
     document.body.appendChild(host);
 
     return function() {
       const existing = document.getElementById("lw-chat-widget-host");
-      if (existing) {
-        existing.remove();
-      }
+      if (existing) existing.remove();
+      
+      const hiddenChat = document.getElementById("n8n-chat-custom");
+      if (hiddenChat) hiddenChat.remove();
     };
   }, []);
 
