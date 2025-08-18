@@ -70,12 +70,12 @@ export default function ChatWidgetN8N() {
             position: fixed;
             z-index: 2147483646;
             bottom: 24px;
-            ` + (POSITION === "bottom-left" ? "left: 24px;" : "right: 24px;") + `
+            ${POSITION === "bottom-left" ? "left: 24px;" : "right: 24px;"}
             color: #111827;
           }
           
           .lw-btn {
-            background: ` + PRIMARY + `;
+            background: ${PRIMARY};
             border: none;
             border-radius: 50%;
             width: 56px;
@@ -89,7 +89,7 @@ export default function ChatWidgetN8N() {
           }
           
           .lw-btn:hover {
-            background: ` + PRIMARY_HOVER + `;
+            background: ${PRIMARY_HOVER};
           }
           
           .lw-icon {
@@ -105,7 +105,7 @@ export default function ChatWidgetN8N() {
             right: -8px;
             bottom: -8px;
             border-radius: 50%;
-            box-shadow: 0 0 10px ` + PRIMARY + `;
+            box-shadow: 0 0 10px ${PRIMARY};
             opacity: 0.6;
             pointer-events: none;
           }
