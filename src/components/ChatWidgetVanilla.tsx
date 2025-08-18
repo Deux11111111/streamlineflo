@@ -507,4 +507,5 @@ export default function ChatWidgetN8N() {
   }, []);
   
   return null;
+}
                   
