@@ -8,7 +8,7 @@ export default function ChatWidgetN8N() {
       console.log("[ChatWidgetN8N] injected script running");
       
       // ========= CONFIG =========
-      const WEBHOOK_URL = "YOUR_PRODUCTION_WEBHOOK_URL"; // Replace with your n8n Chat Trigger webhook URL
+      const WEBHOOK_URL = "https://adrianzap.app.n8n.cloud/webhook/c803253c-f26b-4a80-83a5-53fad70dbdb6/chat"; // Replace with your n8n Chat Trigger webhook URL
       const TITLE = "Chat";
       const SUBTITLE = "Ask anything.";
       const POSITION = "bottom-right"; // "bottom-right" | "bottom-left"
@@ -19,7 +19,7 @@ export default function ChatWidgetN8N() {
       const DARK = "#0b1220";
       // ==========================
       
-      if (!WEBHOOK_URL || WEBHOOK_URL.includes("YOUR_PRODUCTION_WEBHOOK_URL")) {
+      if (!WEBHOOK_URL || WEBHOOK_URL.includes("https://adrianzap.app.n8n.cloud/webhook/c803253c-f26b-4a80-83a5-53fad70dbdb6/chat")) {
         console.warn("[ChatPopup] Please set your real WEBHOOK_URL.");
       }
       
