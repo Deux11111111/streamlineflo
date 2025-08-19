@@ -1,182 +1,164 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Custom Chat Widget</title>
-<style>
-  /* Chat Button */
-  #chat-button {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    background-color: #4A90E2;
-    color: white;
-    border: none;
-    border-radius: 50%;
-    width: 60px;
-    height: 60px;
-    cursor: pointer;
-    font-size: 30px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-  }
+import React, { useState, useEffect, useRef, FormEvent, KeyboardEvent } from "react";
 
-  /* Chat Widget Container */
-  #chat-widget {
-    position: fixed;
-    bottom: 90px;
-    right: 20px;
-    width: 350px;
-    max-height: 500px;
-    background-color: #ffffff;
-    border-radius: 10px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.2);
-    display: none;
-    flex-direction: column;
-    overflow: hidden;
-    font-family: Arial, sans-serif;
-  }
+interface ChatWidgetProps {
+  webhookUrl: string;
+}
 
-  /* Chat Header */
-  #chat-header {
-    background-color: #4A90E2;
-    color: white;
-    padding: 15px;
-    font-size: 18px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
+type Role = "user" | "assistant";
 
-  #chat-header button {
-    background: none;
-    border: none;
-    color: white;
-    font-size: 20px;
-    cursor: pointer;
-  }
+interface Message {
+  id: string;
+  text: string;
+  role: Role;
+}
 
-  /* Chat Messages */
-  #chat-messages {
-    flex: 1;
-    padding: 10px;
-    overflow-y: auto;
-    background-color: #f9f9f9;
-  }
+export const ChatWidget: React.FC<ChatWidgetProps> = ({ https://adrianzap.app.n8n.cloud/webhook/c803253c-f26b-4a80-83a5-53fad70dbdb6/chat }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [messages, setMessages] = useState<Message[]>([
+    { id: "init", text: "Hi there! 👋 My name is Adrian. How can I assist you today?", role: "assistant" }
+  ]);
+  const [inputValue, setInputValue] = useState("");
+  const [isSending, setIsSending] = useState(false);
+  const [isTyping, setIsTyping] = useState(false);
 
-  .message {
-    margin-bottom: 10px;
-    padding: 8px 12px;
-    border-radius: 12px;
-    max-width: 80%;
-    clear: both;
-  }
+  const messagesEndRef = useRef<HTMLDivElement | null>(null);
+  const sessionIdRef = useRef<string>("session_" + Math.random().toString(36).substr(2, 9));
 
-  .user-message {
-    background-color: #4A90E2;
-    color: white;
-    float: right;
-  }
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages, isOpen, isTyping]);
 
-  .bot-message {
-    background-color: #e0e0e0;
-    color: black;
-    float: left;
-  }
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
 
-  /* Chat Input */
-  #chat-input-container {
-    display: flex;
-    padding: 10px;
-    border-top: 1px solid #ddd;
-    background-color: #fff;
-  }
+  const toggleChat = () => {
+    setIsOpen((prev) => !prev);
+  };
 
-  #chat-input {
-    flex: 1;
-    padding: 10px;
-    border-radius: 20px;
-    border: 1px solid #ccc;
-    outline: none;
-  }
+  const addMessage = (text: string, role: Role) => {
+    setMessages((prev) => [...prev, { id: Date.now().toString(), text, role }]);
+  };
 
-  #chat-send {
-    margin-left: 10px;
-    background-color: #4A90E2;
-    border: none;
-    color: white;
-    padding: 0 15px;
-    border-radius: 20px;
-    cursor: pointer;
-  }
-</style>
-</head>
-<body>
+  const sendMessage = async () => {
+    if (!inputValue.trim()) return;
 
-<button id="chat-button">💬</button>
+    const messageText = inputValue;
+    setInputValue("");
+    addMessage(messageText, "user");
+    setIsSending(true);
+    setIsTyping(true);
 
-<div id="chat-widget">
-  <div id="chat-header">
-    Chat
-    <button id="chat-close">✖</button>
-  </div>
-  <div id="chat-messages"></div>
-  <div id="chat-input-container">
-    <input type="text" id="chat-input" placeholder="Type a message...">
-    <button id="chat-send">Send</button>
-  </div>
-</div>
+    try {
+      const response = await fetch(webhookUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          sessionId: sessionIdRef.current,
+          message: messageText
+        })
+      });
 
-<script>
-  const chatButton = document.getElementById('chat-button');
-  const chatWidget = document.getElementById('chat-widget');
-  const chatClose = document.getElementById('chat-close');
-  const chatSend = document.getElementById('chat-send');
-  const chatInput = document.getElementById('chat-input');
-  const chatMessages = document.getElementById('chat-messages');
+      const data = await response.json();
 
-  // Open chat
-  chatButton.addEventListener('click', () => {
-    chatWidget.style.display = 'flex';
-    chatButton.style.display = 'none';
-    chatInput.focus();
-  });
+      if (data?.reply) {
+        addMessage(data.reply, "assistant");
+      } else {
+        addMessage("Oops! No reply received.", "assistant");
+      }
+    } catch (err) {
+      addMessage("Error sending message.", "assistant");
+      console.error(err);
+    } finally {
+      setIsSending(false);
+      setIsTyping(false);
+    }
+  };
 
-  // Close chat
-  chatClose.addEventListener('click', () => {
-    chatWidget.style.display = 'none';
-    chatButton.style.display = 'block';
-  });
+  const handleSubmit = (e: FormEvent) => {
+    e.preventDefault();
+    if (!isSending) sendMessage();
+  };
 
-  // Send message function
-  function sendMessage() {
-    const text = chatInput.value.trim();
-    if (!text) return;
+  const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      if (!isSending) sendMessage();
+    }
+  };
 
-    // Add user message
-    const userMsg = document.createElement('div');
-    userMsg.className = 'message user-message';
-    userMsg.textContent = text;
-    chatMessages.appendChild(userMsg);
+  return (
+    <div className="fixed bottom-6 right-6 z-[2147483646] font-sans text-gray-900">
+      <button
+        className="w-12 h-12 rounded-full bg-indigo-600 text-white relative flex items-center justify-center shadow-lg hover:bg-indigo-700"
+        onClick={toggleChat}
+        aria-expanded={isOpen}
+        title={isOpen ? "Close chat" : "Open chat"}
+      >
+        {isOpen ? (
+          <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M18 6 6 18M6 6l12 12" />
+          </svg>
+        ) : (
+          <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M21 15a4 4 0 0 1-4 4H7l-4 4V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z" />
+          </svg>
+        )}
+        <span className="absolute -inset-1 rounded-full bg-gradient-to-r from-indigo-400 to-indigo-600 opacity-30 blur-xl"></span>
+      </button>
 
-    chatInput.value = '';
-    chatMessages.scrollTop = chatMessages.scrollHeight;
+      {isOpen && (
+        <div className="mt-3 w-[min(90vw,380px)] bg-white/80 border border-gray-200 rounded-xl shadow-lg backdrop-blur-md flex flex-col overflow-hidden animate-enter">
+          <div className="p-4 border-b border-gray-200 bg-gradient-to-r from-indigo-100/10 to-transparent">
+            <h2 className="text-sm font-semibold text-gray-900">AI Assistant</h2>
+            <p className="text-xs text-gray-500 mt-1">Start a conversation. We're here to help you 24/7.</p>
+          </div>
 
-    // Simulate bot response
-    setTimeout(() => {
-      const botMsg = document.createElement('div');
-      botMsg.className = 'message bot-message';
-      botMsg.textContent = 'This is a bot response.';
-      chatMessages.appendChild(botMsg);
-      chatMessages.scrollTop = chatMessages.scrollHeight;
-    }, 500);
-  }
+          <div className="flex-1 h-80 overflow-hidden">
+            <div className="h-full overflow-auto p-3 space-y-2">
+              {messages.map((msg) => (
+                <div key={msg.id} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
+                  <div className={`max-w-[80%] px-3 py-2 rounded-xl text-sm leading-5 ${msg.role === "user" ? "bg-indigo-600 text-white shadow-md" : "bg-gray-100 text-gray-800"}`}>
+                    {msg.text}
+                  </div>
+                </div>
+              ))}
+              {isTyping && (
+                <div className="flex justify-start">
+                  <div className="px-3 py-2 rounded-xl bg-gray-100 text-gray-800 text-sm">
+                    <span className="inline-flex space-x-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-gray-400 animate-bounce"></span>
+                      <span className="w-1.5 h-1.5 rounded-full bg-gray-400 animate-bounce delay-200"></span>
+                      <span className="w-1.5 h-1.5 rounded-full bg-gray-400 animate-bounce delay-400"></span>
+                    </span>
+                  </div>
+                </div>
+              )}
+              <div ref={messagesEndRef}></div>
+            </div>
+          </div>
 
-  chatSend.addEventListener('click', sendMessage);
-  chatInput.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') sendMessage();
-  });
-</script>
-
-</body>
-</html>
+          <form className="flex gap-2 p-2 border-t border-gray-200 bg-white/60 backdrop-blur-md" onSubmit={handleSubmit}>
+            <input
+              type="text"
+              className="flex-1 h-11 px-3 rounded-full border border-gray-300 focus:border-indigo-600 focus:ring-2 focus:ring-indigo-200 outline-none bg-white/90"
+              placeholder="Type your message..."
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              onKeyDown={handleKeyDown}
+              disabled={isSending}
+            />
+            <button
+              type="submit"
+              className="h-11 px-4 rounded-full bg-gray-800 text-white flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={isSending}
+            >
+              {isSending ? <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span> : null}
+              <span>{isSending ? "Sending" : "Send"}</span>
+            </button>
+          </form>
+        </div>
+      )}
+    </div>
+  );
+};
