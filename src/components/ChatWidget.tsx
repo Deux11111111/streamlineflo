@@ -7,19 +7,19 @@ interface ChatWidgetProps {
   webhookUrl?: string;
 }
 
-export const ChatWidget = ({ 
-  webhookUrl = "https://adrianzap.app.n8n.cloud/webhook/c803253c-f26b-4a80-83a5-53fad70dbdb6/chat" 
-}: ChatWidgetProps) => {
-  
+export const ChatWidget: React.FC<ChatWidgetProps> = ({
+  webhookUrl = "https://adrianzap.app.n8n.cloud/webhook/c803253c-f26b-4a80-83a5-53fad70dbdb6/chat"
+}) => {
+
   useEffect(() => {
     createChat({
       webhookUrl: webhookUrl,
-      mode: 'window', // floating window style
+      mode: 'window', // floating window
       showWelcomeScreen: false,
       loadPreviousSession: true,
       initialMessages: [
         'Hi there! 👋',
-        'My name is Nathan. How can I assist you today?'
+        'My name is Adrian. How can I assist you today?'
       ],
       i18n: {
         en: {
@@ -35,4 +35,3 @@ export const ChatWidget = ({
 
   return <div id="n8n-chat"></div>;
 };
-
