@@ -6,7 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
-import ChatWidget from "./components/ChatWidget"; // <- Import your chat widget
+import N8nChat from "./components/N8nChat";
 
 const queryClient = new QueryClient();
 
@@ -22,7 +22,12 @@ const App = () => (
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
-      {/* Add the ChatWidget at the bottom so it’s available globally */}
+       <N8nChat 
+        webhookUrl="https://adrianzap.app.n8n.cloud/webhook/c803253c-f26b-4a80-83a5-53fad70dbdb6/chat"
+        title="AI Assistant"
+        subtitle="How can I help you today?"
+        position="bottom-right"
+      />
       <ChatWidget />
     </TooltipProvider>
   </QueryClientProvider>
