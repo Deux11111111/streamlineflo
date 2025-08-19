@@ -1,121 +1,37 @@
-:host, * { box-sizing: border-box; }
+// src/components/ChatWidget.tsx
+import { useEffect } from 'react';
+import '@n8n/chat/style.css';
+import { createChat } from '@n8n/chat';
 
-@keyframes spin { to { transform: rotate(360deg); } }
-@keyframes enter { 
-  0% { opacity: 0; transform: translateY(6px) scale(0.98); } 
-  100% { opacity: 1; transform: translateY(0) scale(1); } 
-}
-
-.premium-root {
-  position: fixed;
-  z-index: 2147483646;
-  bottom: 24px;
-  font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji';
-  color: #111827;
+interface ChatWidgetProps {
+  webhookUrl?: string;
 }
 
-.premium-btn {
-  width: 48px; height: 48px; border-radius: 999px; border: 0; cursor: pointer; position: relative;
-  color: #fff; background: var(--primary-color);
-  box-shadow: 0 12px 28px rgba(79,70,229,0.35), 0 4px 10px rgba(79,70,229,0.25);
-  display: inline-flex; align-items: center; justify-content: center;
-  transition: all 0.2s ease;
-}
-.premium-btn:hover { 
-  transform: translateY(-2px); 
-  box-shadow: 0 16px 32px rgba(79,70,229,0.4), 0 6px 14px rgba(79,70,229,0.3);
-  background: var(--primary-hover-color); 
-}
-.premium-btn .premium-icon { width: 20px; height: 20px; display: block; }
-.premium-glow { 
-  position: absolute; inset: -4px; border-radius: 999px; 
-  background: radial-gradient(60% 60% at 50% 50%, rgba(79,70,229,0.35), rgba(79,70,229,0)); 
-  filter: blur(10px); z-index: -1; 
-}
+export const ChatWidget: React.FC<ChatWidgetProps> = ({
+  webhookUrl = "https://adrianzap.app.n8n.cloud/webhook/c803253c-f26b-4a80-83a5-53fad70dbdb6/chat"
+}) => {
 
-.premium-card {
-  margin-top: 12px; width: min(90vw, 380px); border-radius: 18px; overflow: hidden;
-  background: rgba(255,255,255,0.82); border: 1px solid rgba(2,6,23,0.06);
-  box-shadow: 0 20px 50px rgba(2,6,23,0.18), 0 6px 18px rgba(2,6,23,0.12);
-  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-  animation: enter 0.28s ease-out;
-}
+  useEffect(() => {
+    createChat({
+      webhookUrl: webhookUrl,
+      mode: 'window', // floating window
+      showWelcomeScreen: false,
+      loadPreviousSession: true,
+      initialMessages: [
+        'Hi there! 👋',
+        'My name is Adrian. How can I assist you today?'
+      ],
+      i18n: {
+        en: {
+          title: 'Hi there! 👋',
+          subtitle: "Start a chat. We're here to help you 24/7.",
+          getStarted: 'New Conversation',
+          inputPlaceholder: 'Type your question..',
+        },
+      },
+      enableStreaming: false,
+    });
+  }, [webhookUrl]);
 
-.premium-header {
-  padding: 14px 16px 10px; border-bottom: 1px solid rgba(2,6,23,0.06);
-  background: linear-gradient(90deg, rgba(79,70,229,0.10), rgba(79,70,229,0));
-}
-.premium-title { 
-  margin: 0; font-size: 15px; font-weight: 600; line-height: 1.1; 
-  letter-spacing: 0.2px; color: #111827; 
-}
-.premium-sub { 
-  margin: 6px 0 0; font-size: 12.5px; color: #6b7280; 
-}
-
-.premium-body { height: 320px; overflow: hidden; }
-.premium-scroll { 
-  height: 100%; overflow: auto; padding: 12px 12px 10px; 
-  scrollbar-width: thin; scrollbar-color: #d1d5db transparent;
-}
-.premium-scroll::-webkit-scrollbar { width: 4px; }
-.premium-scroll::-webkit-scrollbar-track { background: transparent; }
-.premium-scroll::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 2px; }
-
-.premium-empty { font-size: 13px; color: #6b7280; }
-
-.premium-row { display: flex; margin: 8px 0; }
-.premium-row.user { justify-content: flex-end; }
-.premium-row.assistant { justify-content: flex-start; }
-.premium-bubble {
-  max-width: 80%; padding: 9px 12px; border-radius: 16px; font-size: 13px; 
-  line-height: 1.4; animation: enter 0.25s ease-out;
-}
-.premium-bubble.user { 
-  background: var(--primary-color); color: #fff; 
-  box-shadow: 0 8px 20px rgba(79,70,229,0.35); 
-}
-.premium-bubble.assistant { 
-  background: rgba(0,0,0,0.04); color: #374151; 
-}
-
-.premium-footer {
-  display: flex; gap: 8px; border-top: 1px solid rgba(2,6,23,0.06);
-  padding: 10px; align-items: center;
-  background: rgba(255,255,255,0.66); backdrop-filter: blur(10px);
-}
-.premium-input {
-  flex: 1; height: 44px; padding: 10px 14px; border: 1px solid rgba(0,0,0,0.10); 
-  border-radius: 999px; font-size: 14px; outline: none; background: rgba(255,255,255,0.9);
-  transition: all 0.2s ease;
-}
-.premium-input::placeholder { color: #9ca3af; }
-.premium-input:focus { 
-  border-color: var(--primary-color); 
-  box-shadow: 0 0 0 4px rgba(79,70,229,0.20); 
-  background: #fff; 
-}
-
-.premium-send {
-  height: 44px; padding: 0 16px; background: var(--dark-color); color: #fff; border: 0; 
-  border-radius: 999px; font-size: 14px; cursor: pointer;
-  display: inline-flex; align-items: center; gap: 8px;
-  transition: all 0.2s ease;
-  box-shadow: 0 8px 20px rgba(31,41,55,0.18);
-}
-.premium-send:hover { 
-  transform: translateY(-1px); 
-  filter: brightness(1.05);
-}
-.premium-send[disabled] { 
-  opacity: 0.6; cursor: not-allowed; transform: none; 
-}
-.premium-spin {
-  width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.35); 
-  border-top-color: #fff; border-radius: 999px; display: inline-block;
-  animation: spin 0.9s linear infinite; vertical-align: -3px;
-}
-.premium-send-icon { width: 18px; height: 18px; display: block; }
-
-.premium-close { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
-.premium-hidden { display: none; }
+  return <div id="n8n-chat"></div>;
+};
