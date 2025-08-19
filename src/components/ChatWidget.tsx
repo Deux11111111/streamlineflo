@@ -1,163 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Custom Chat Widget</title>
+<style>
+  /* Chat Button */
+  #chat-button {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background-color: #4A90E2;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    cursor: pointer;
+    font-size: 30px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+  }
+
+  /* Chat Widget Container */
+  #chat-widget {
+    position: fixed;
+    bottom: 90px;
+    right: 20px;
+    width: 350px;
+    max-height: 500px;
+    background-color: #ffffff;
+    border-radius: 10px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    display: none;
+    flex-direction: column;
+    overflow: hidden;
+    font-family: Arial, sans-serif;
+  }
+
+  /* Chat Header */
+  #chat-header {
+    background-color: #4A90E2;
+    color: white;
+    padding: 15px;
+    font-size: 18px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  #chat-header button {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 20px;
+    cursor: pointer;
+  }
+
+  /* Chat Messages */
+  #chat-messages {
+    flex: 1;
+    padding: 10px;
+    overflow-y: auto;
+    background-color: #f9f9f9;
+  }
+
+  .message {
+    margin-bottom: 10px;
+    padding: 8px 12px;
+    border-radius: 12px;
+    max-width: 80%;
+    clear: both;
+  }
+
+  .user-message {
+    background-color: #4A90E2;
+    color: white;
+    float: right;
+  }
+
+  .bot-message {
+    background-color: #e0e0e0;
+    color: black;
+    float: left;
+  }
+
+  /* Chat Input */
+  #chat-input-container {
+    display: flex;
+    padding: 10px;
+    border-top: 1px solid #ddd;
+    background-color: #fff;
+  }
+
+  #chat-input {
+    flex: 1;
+    padding: 10px;
+    border-radius: 20px;
+    border: 1px solid #ccc;
+    outline: none;
+  }
+
+  #chat-send {
+    margin-left: 10px;
+    background-color: #4A90E2;
+    border: none;
+    color: white;
+    padding: 0 15px;
+    border-radius: 20px;
+    cursor: pointer;
+  }
+</style>
+</head>
+<body>
+
+<button id="chat-button">💬</button>
+
+<div id="chat-widget">
+  <div id="chat-header">
+    Chat
+    <button id="chat-close">✖</button>
+  </div>
+  <div id="chat-messages"></div>
+  <div id="chat-input-container">
+    <input type="text" id="chat-input" placeholder="Type a message...">
+    <button id="chat-send">Send</button>
+  </div>
+</div>
+
 <script>
-class CustomN8NChat {
-    constructor(options) {
-        this.webhookUrl = options.webhookUrl;
-        this.sessionId = this.generateSessionId();
-        this.chatInputKey = options.chatInputKey || 'chatInput';
-        this.chatSessionKey = options.chatSessionKey || 'sessionId';
-        this.loadPreviousSession = options.loadPreviousSession !== false;
-        
-        this.toggleBtn = document.getElementById('toggleBtn');
-        this.chatPanel = document.getElementById('chatPanel');
-        this.messagesContainer = document.getElementById('messagesContainer');
-        this.messageInput = document.getElementById('messageInput');
-        this.sendButton = document.getElementById('sendButton');
-        this.chatForm = document.getElementById('chatForm');
-        this.typingIndicator = document.getElementById('typingIndicator');
-        
-        this.isOpen = false;
-        this.isSending = false;
-        
-        this.init();
-    }
+  const chatButton = document.getElementById('chat-button');
+  const chatWidget = document.getElementById('chat-widget');
+  const chatClose = document.getElementById('chat-close');
+  const chatSend = document.getElementById('chat-send');
+  const chatInput = document.getElementById('chat-input');
+  const chatMessages = document.getElementById('chat-messages');
 
-    generateSessionId() {
-        return 'session_' + Math.random().toString(36).substr(2, 9);
-    }
+  // Open chat
+  chatButton.addEventListener('click', () => {
+    chatWidget.style.display = 'flex';
+    chatButton.style.display = 'none';
+    chatInput.focus();
+  });
 
-    init() {
-        this.setupEventListeners();
-        if (this.loadPreviousSession) this.loadPreviousMessages();
-    }
+  // Close chat
+  chatClose.addEventListener('click', () => {
+    chatWidget.style.display = 'none';
+    chatButton.style.display = 'block';
+  });
 
-    setupEventListeners() {
-        this.toggleBtn.addEventListener('click', () => this.toggleChat());
-        this.chatForm.addEventListener('submit', e => {
-            e.preventDefault();
-            this.sendMessage();
-        });
-        this.messageInput.addEventListener('keydown', e => {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                this.sendMessage();
-            }
-        });
-    }
+  // Send message function
+  function sendMessage() {
+    const text = chatInput.value.trim();
+    if (!text) return;
 
-    toggleChat() {
-        this.isOpen = !this.isOpen;
-        if (this.isOpen) {
-            this.chatPanel.classList.add('show');
-            this.toggleBtn.setAttribute('aria-expanded', 'true');
-            this.toggleBtn.title = 'Close chat';
-            this.toggleBtn.innerHTML = `
-                <svg class="premium-icon" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M18 6 6 18M6 6l12 12"/>
-                </svg>
-                <span class="premium-glow"></span>
-            `;
-            setTimeout(() => this.messageInput.focus(), 100);
-        } else {
-            this.chatPanel.classList.remove('show');
-            this.toggleBtn.setAttribute('aria-expanded', 'false');
-            this.toggleBtn.title = 'Open chat';
-            this.toggleBtn.innerHTML = `
-                <svg class="premium-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M21 15a4 4 0 0 1-4 4H7l-4 4V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z" />
-                </svg>
-                <span class="premium-glow"></span>
-            `;
-        }
-        this.scrollToBottom();
-    }
+    // Add user message
+    const userMsg = document.createElement('div');
+    userMsg.className = 'message user-message';
+    userMsg.textContent = text;
+    chatMessages.appendChild(userMsg);
 
-    scrollToBottom() {
-        setTimeout(() => {
-            this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight;
-        }, 50);
-    }
+    chatInput.value = '';
+    chatMessages.scrollTop = chatMessages.scrollHeight;
 
-    addMessage(text, role, animate = true) {
-        const row = document.createElement('div');
-        row.className = `premium-row ${role}`;
-        if (animate) row.style.animation = 'slideIn 0.3s ease';
-        const bubble = document.createElement('div');
-        bubble.className = `premium-bubble ${role}`;
-        bubble.textContent = text;
-        row.appendChild(bubble);
-        this.messagesContainer.appendChild(row);
-        this.scrollToBottom();
-    }
+    // Simulate bot response
+    setTimeout(() => {
+      const botMsg = document.createElement('div');
+      botMsg.className = 'message bot-message';
+      botMsg.textContent = 'This is a bot response.';
+      chatMessages.appendChild(botMsg);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }, 500);
+  }
 
-    showTyping() {
-        this.typingIndicator.classList.add('show');
-        this.scrollToBottom();
-    }
-
-    hideTyping() {
-        this.typingIndicator.classList.remove('show');
-    }
-
-    setInputDisabled(disabled) {
-        this.messageInput.disabled = disabled;
-        this.sendButton.disabled = disabled;
-        if (disabled) {
-            this.sendButton.innerHTML = `<span class="premium-spin"></span><span style="margin-left:8px">Sending</span>`;
-        } else {
-            this.sendButton.innerHTML = `
-                <svg class="premium-send-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/>
-                </svg>
-                <span>Send</span>
-            `;
-        }
-    }
-
-    async sendMessage() {
-        const message = this.messageInput.value.trim();
-        if (!message || this.isSending) return;
-
-        this.addMessage(message, 'user');
-        this.messageInput.value = '';
-        this.setInputDisabled(true);
-        this.showTyping();
-        this.isSending = true;
-
-        try {
-            const response = await fetch(this.webhookUrl, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    [this.chatInputKey]: message,
-                    [this.chatSessionKey]: this.sessionId
-                })
-            });
-
-            if (!response.ok) throw new Error(`Server error: ${response.status}`);
-            const data = await response.json();
-            const reply = data.reply || 'Sorry, I could not process that.';
-
-            this.addMessage(reply, 'assistant');
-        } catch (err) {
-            console.error(err);
-            const errorRow = document.createElement('div');
-            errorRow.className = 'error-message';
-            errorRow.textContent = `Error sending message: ${err.message}`;
-            this.messagesContainer.appendChild(errorRow);
-            this.scrollToBottom();
-        } finally {
-            this.setInputDisabled(false);
-            this.hideTyping();
-            this.isSending = false;
-        }
-    }
-
-    loadPreviousMessages() {
-        const saved = JSON.parse(localStorage.getItem(this.sessionId) || '[]');
-        saved.forEach(msg => this.addMessage(msg.text, msg.role, false));
-    }
-}
-
-// Initialize widget
-new CustomN8NChat({ webhookUrl: 'https://adrianzap.app.n8n.cloud/webhook/c803253c-f26b-4a80-83a5-53fad70dbdb6/chat' });
+  chatSend.addEventListener('click', sendMessage);
+  chatInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') sendMessage();
+  });
 </script>
+
+</body>
+</html>
