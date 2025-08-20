@@ -39,19 +39,9 @@ const N8nChat: React.FC<N8nChatProps> = ({
     }
   }, [messages]);
 
-  // subscribe to n8n SSE when chat opens and load previous session
+  // subscribe to n8n SSE when chat opens
   useEffect(() => {
     if (!isOpen) return;
-
-    // Load previous session
-    fetch(webhookUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        action: "loadPreviousSession",
-        sessionId,
-      }),
-    }).catch((err) => console.error("Failed to load previous session:", err));
 
     const eventSource = new EventSource(
       `${webhookUrl}?sessionId=${encodeURIComponent(sessionId)}`
@@ -105,8 +95,8 @@ const N8nChat: React.FC<N8nChatProps> = ({
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          action: "sendMessage",
           sessionId,
+          action: "sendMessage",
           chatInput: message,
         }),
       });
