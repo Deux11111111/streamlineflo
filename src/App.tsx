@@ -22,13 +22,14 @@ const App = () => (
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
-       <N8nChat 
+
+      {/* N8n Chat Widget */}
+      <N8nChat 
         webhookUrl="https://adrianzap.app.n8n.cloud/webhook/c803253c-f26b-4a80-83a5-53fad70dbdb6/chat"
         title="AI Assistant"
         subtitle="How can I help you today?"
         position="bottom-right"
       />
-      <ChatWidget />
     </TooltipProvider>
   </QueryClientProvider>
 );
