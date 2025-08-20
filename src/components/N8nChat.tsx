@@ -1,87 +1,115 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Send, MessageCircle, X } from 'lucide-react';
+import React, { useState, useRef, useEffect } from "react";
+import { Send, MessageCircle, X } from "lucide-react";
 
 interface Message {
   id: string;
   text: string;
-  sender: 'user' | 'assistant';
+  sender: "user" | "assistant";
   timestamp: Date;
 }
 
 interface N8nChatProps {
-  webhookUrl: string;
+  webhookUrl: string; // e.g. https://your-subdomain.n8n.cloud/webhook/.../chat
   title?: string;
   subtitle?: string;
-  position?: 'bottom-right' | 'bottom-left';
+  position?: "bottom-right" | "bottom-left";
 }
 
-const N8nChat: React.FC<N8nChatProps> = ({ 
-  webhookUrl, 
-  title = "AI Assistant", 
+const N8nChat: React.FC<N8nChatProps> = ({
+  webhookUrl,
+  title = "AI Assistant",
   subtitle = "How can I help you today?",
-  position = 'bottom-right' 
+  position = "bottom-right",
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
-  const [inputValue, setInputValue] = useState('');
+  const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  const positionClass = position === 'bottom-left' ? 'left-6' : 'right-6';
+  // persistent sessionId across chat
+  const [sessionId] = useState(() => "chat_session_" + crypto.randomUUID());
 
+  const positionClass = position === "bottom-left" ? "left-6" : "right-6";
+
+  // auto scroll to bottom when messages change
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages]);
 
+  // subscribe to n8n SSE when chat opens
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const eventSource = new EventSource(
+      `${webhookUrl}?sessionId=${encodeURIComponent(sessionId)}`
+    );
+
+    eventSource.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        if (data.text) {
+          setMessages((prev) => [
+            ...prev,
+            {
+              id: crypto.randomUUID(),
+              text: data.text,
+              sender: "assistant",
+              timestamp: new Date(),
+            },
+          ]);
+        }
+      } catch (err) {
+        console.error("Error parsing SSE message:", err);
+      }
+    };
+
+    eventSource.onerror = (err) => {
+      console.error("SSE connection error:", err);
+      eventSource.close();
+    };
+
+    return () => eventSource.close();
+  }, [isOpen, webhookUrl, sessionId]);
+
   const sendMessage = async (message: string) => {
     if (!message.trim() || isLoading) return;
 
     const userMessage: Message = {
-      id: Date.now().toString(),
+      id: crypto.randomUUID(),
       text: message,
-      sender: 'user',
-      timestamp: new Date()
+      sender: "user",
+      timestamp: new Date(),
     };
 
-    setMessages(prev => [...prev, userMessage]);
-    setInputValue('');
+    setMessages((prev) => [...prev, userMessage]);
+    setInputValue("");
     setIsLoading(true);
 
     try {
-      const response = await fetch(webhookUrl, {
-        method: 'POST',
+      await fetch(webhookUrl, {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          action: 'sendMessage',
-          sessionId: 'chat_session_' + Date.now(),
-          chatInput: message
+          sessionId,
+          text: message,
         }),
       });
-
-      if (response.ok) {
-        const data = await response.text();
-        const assistantMessage: Message = {
-          id: (Date.now() + 1).toString(),
-          text: data || 'I received your message!',
-          sender: 'assistant',
-          timestamp: new Date()
-        };
-        setMessages(prev => [...prev, assistantMessage]);
-      } else {
-        throw new Error('Failed to send message');
-      }
+      // reply will come automatically via SSE
     } catch (error) {
-      const errorMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        text: 'Sorry, I\'m having trouble connecting right now. Please try again.',
-        sender: 'assistant',
-        timestamp: new Date()
-      };
-      setMessages(prev => [...prev, errorMessage]);
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: crypto.randomUUID(),
+          text: "Sorry, I'm having trouble connecting right now. Please try again.",
+          sender: "assistant",
+          timestamp: new Date(),
+        },
+      ]);
     } finally {
       setIsLoading(false);
     }
@@ -93,22 +121,24 @@ const N8nChat: React.FC<N8nChatProps> = ({
   };
 
   return (
-    <div className={`fixed z-[2147483646] bottom-6 ${positionClass} font-sans text-gray-900`}>
+    <div
+      className={`fixed z-[2147483646] bottom-6 ${positionClass} font-sans text-gray-900`}
+    >
       {/* Chat Toggle Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="w-12 h-12 rounded-full border-0 cursor-pointer relative text-white bg-indigo-600 hover:bg-indigo-700 inline-flex items-center justify-center transition-all duration-200 hover:-translate-y-0.5"
         style={{
           background: `hsl(var(--primary-color))`,
-          boxShadow: 'var(--chat-glow)',
+          boxShadow: "var(--chat-glow)",
         }}
         onMouseEnter={(e) => {
           e.currentTarget.style.background = `hsl(var(--primary-hover-color))`;
-          e.currentTarget.style.boxShadow = 'var(--chat-glow-hover)';
+          e.currentTarget.style.boxShadow = "var(--chat-glow-hover)";
         }}
         onMouseLeave={(e) => {
           e.currentTarget.style.background = `hsl(var(--primary-color))`;
-          e.currentTarget.style.boxShadow = 'var(--chat-glow)';
+          e.currentTarget.style.boxShadow = "var(--chat-glow)";
         }}
         aria-expanded={isOpen}
         title={isOpen ? "Close chat" : "Open chat"}
@@ -124,54 +154,54 @@ const N8nChat: React.FC<N8nChatProps> = ({
             </div>
           )}
         </div>
-        
+
         {/* Glow effect */}
-        <span 
+        <span
           className="absolute -inset-1 rounded-full opacity-35 -z-10 blur-sm"
           style={{
-            background: 'radial-gradient(60% 60% at 50% 50%, rgba(79,70,229,0.35), rgba(79,70,229,0))'
+            background:
+              "radial-gradient(60% 60% at 50% 50%, rgba(79,70,229,0.35), rgba(79,70,229,0))",
           }}
         />
       </button>
 
       {/* Chat Panel */}
       {isOpen && (
-        <div 
+        <div
           className="mt-3 w-[min(90vw,380px)] rounded-[18px] overflow-hidden border animate-enter"
           style={{
-            background: 'rgba(255,255,255,0.82)',
-            borderColor: 'rgba(2,6,23,0.06)',
-            boxShadow: 'var(--chat-shadow)',
-            backdropFilter: 'blur(12px)',
-            WebkitBackdropFilter: 'blur(12px)'
+            background: "rgba(255,255,255,0.82)",
+            borderColor: "rgba(2,6,23,0.06)",
+            boxShadow: "var(--chat-shadow)",
+            backdropFilter: "blur(12px)",
+            WebkitBackdropFilter: "blur(12px)",
           }}
           role="dialog"
           aria-label="Chat widget"
         >
           {/* Header */}
-          <div 
+          <div
             className="px-4 py-3.5 border-b"
             style={{
-              borderBottomColor: 'rgba(2,6,23,0.06)',
-              background: 'linear-gradient(90deg, rgba(79,70,229,0.10), rgba(79,70,229,0))'
+              borderBottomColor: "rgba(2,6,23,0.06)",
+              background:
+                "linear-gradient(90deg, rgba(79,70,229,0.10), rgba(79,70,229,0))",
             }}
           >
             <h2 className="m-0 text-[15px] font-semibold leading-tight tracking-wide text-gray-900">
               {title}
             </h2>
-            <p className="mt-1.5 mb-0 text-[12.5px] text-gray-600">
-              {subtitle}
-            </p>
+            <p className="mt-1.5 mb-0 text-[12.5px] text-gray-600">{subtitle}</p>
           </div>
 
           {/* Chat Body */}
           <div className="h-80 overflow-hidden">
-            <div 
+            <div
               ref={scrollRef}
               className="h-full overflow-auto px-3 py-3"
               style={{
-                scrollbarWidth: 'thin',
-                scrollbarColor: '#d1d5db transparent'
+                scrollbarWidth: "thin",
+                scrollbarColor: "#d1d5db transparent",
               }}
             >
               {messages.length === 0 ? (
@@ -183,22 +213,26 @@ const N8nChat: React.FC<N8nChatProps> = ({
                   <div
                     key={message.id}
                     className={`flex my-2 ${
-                      message.sender === 'user' ? 'justify-end' : 'justify-start'
+                      message.sender === "user"
+                        ? "justify-end"
+                        : "justify-start"
                     }`}
                   >
                     <div
                       className={`max-w-[80%] px-3 py-2.5 rounded-2xl text-[13px] leading-relaxed animate-enter ${
-                        message.sender === 'user'
-                          ? 'text-white'
-                          : 'text-gray-700'
+                        message.sender === "user"
+                          ? "text-white"
+                          : "text-gray-700"
                       }`}
                       style={{
-                        background: message.sender === 'user' 
-                          ? `hsl(var(--primary-color))`
-                          : 'rgba(0,0,0,0.04)',
-                        boxShadow: message.sender === 'user' 
-                          ? '0 8px 20px rgba(79,70,229,0.35)' 
-                          : 'none'
+                        background:
+                          message.sender === "user"
+                            ? `hsl(var(--primary-color))`
+                            : "rgba(0,0,0,0.04)",
+                        boxShadow:
+                          message.sender === "user"
+                            ? "0 8px 20px rgba(79,70,229,0.35)"
+                            : "none",
                       }}
                     >
                       {message.text}
@@ -210,13 +244,13 @@ const N8nChat: React.FC<N8nChatProps> = ({
           </div>
 
           {/* Footer / Input */}
-          <form 
+          <form
             onSubmit={handleSubmit}
             className="flex gap-2 border-t p-2.5 items-center"
             style={{
-              borderTopColor: 'rgba(2,6,23,0.06)',
-              background: 'rgba(255,255,255,0.66)',
-              backdropFilter: 'blur(10px)'
+              borderTopColor: "rgba(2,6,23,0.06)",
+              background: "rgba(255,255,255,0.66)",
+              backdropFilter: "blur(10px)",
             }}
           >
             <input
@@ -226,18 +260,8 @@ const N8nChat: React.FC<N8nChatProps> = ({
               placeholder="Type your message..."
               className="flex-1 h-11 px-3.5 border rounded-full text-sm outline-none transition-all duration-200"
               style={{
-                borderColor: 'rgba(0,0,0,0.10)',
-                background: 'rgba(255,255,255,0.9)'
-              }}
-              onFocus={(e) => {
-                e.target.style.borderColor = `hsl(var(--primary-color))`;
-                e.target.style.boxShadow = '0 0 0 4px rgba(79,70,229,0.20)';
-                e.target.style.background = '#fff';
-              }}
-              onBlur={(e) => {
-                e.target.style.borderColor = 'rgba(0,0,0,0.10)';
-                e.target.style.boxShadow = 'none';
-                e.target.style.background = 'rgba(255,255,255,0.9)';
+                borderColor: "rgba(0,0,0,0.10)",
+                background: "rgba(255,255,255,0.9)",
               }}
               disabled={isLoading}
               aria-label="Message"
@@ -248,15 +272,7 @@ const N8nChat: React.FC<N8nChatProps> = ({
               className="h-11 px-4 text-white border-0 rounded-full text-sm cursor-pointer inline-flex items-center gap-2 transition-all duration-200 hover:-translate-y-0.5 disabled:opacity-60 disabled:cursor-not-allowed disabled:transform-none"
               style={{
                 background: `hsl(var(--dark-color))`,
-                boxShadow: '0 8px 20px rgba(31,41,55,0.18)'
-              }}
-              onMouseEnter={(e) => {
-                if (!e.currentTarget.disabled) {
-                  e.currentTarget.style.filter = 'brightness(1.05)';
-                }
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.filter = 'brightness(1)';
+                boxShadow: "0 8px 20px rgba(31,41,55,0.18)",
               }}
             >
               {isLoading ? (
@@ -274,3 +290,4 @@ const N8nChat: React.FC<N8nChatProps> = ({
 };
 
 export default N8nChat;
+
