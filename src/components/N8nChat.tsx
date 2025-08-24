@@ -9,20 +9,20 @@ interface Message {
 }
 
 interface N8nChatProps {
-  webhookUrl: "https://adrianzap.app.n8n.cloud/webhook/c803253c-f26b-4a80-83a5-53fad70dbdb6/chat"
-  title?: "Your Personal Assistant"
-  subtitle?: "How can I help you today?"
+  webhookUrl: string; // your webhook URL
+  title?: string;
+  subtitle?: string;
   position?: "bottom-right" | "bottom-left";
 }
 
 const N8nChat: React.FC<N8nChatProps> = ({
-  webhookUrl,
-  title = "AI Assistant",
+  webhookUrl = "https://adrianzap.app.n8n.cloud/webhook/c803253c-f26b-4a80-83a5-53fad70dbdb6/chat",
+  title = "Your Personal Assistant",
   subtitle = "How can I help you today?",
   position = "bottom-right",
 }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState<Message[]>(() => [
+  const [messages, setMessages] = useState<Message[]>([
     {
       id: crypto.randomUUID(),
       text: "Hey! Welcome to StreamlineFlo",
@@ -33,10 +33,10 @@ const N8nChat: React.FC<N8nChatProps> = ({
   const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [eventSource, setEventSource] = useState<EventSource | null>(null);
 
   // persistent sessionId across chat
   const [sessionId] = useState(() => "chat_session_" + crypto.randomUUID());
-
   const positionClass = position === "bottom-left" ? "left-6" : "right-6";
 
   // auto scroll to bottom when messages change
@@ -46,15 +46,13 @@ const N8nChat: React.FC<N8nChatProps> = ({
     }
   }, [messages]);
 
-  // subscribe to n8n SSE when chat opens
-  useEffect(() => {
-    if (!isOpen) return;
-
-    const eventSource = new EventSource(
+  const startSSE = () => {
+    if (eventSource) return; // SSE already started
+    const es = new EventSource(
       `${webhookUrl}/stream?sessionId=${encodeURIComponent(sessionId)}`
     );
 
-    eventSource.onmessage = (event) => {
+    es.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
         if (data.text) {
@@ -73,16 +71,20 @@ const N8nChat: React.FC<N8nChatProps> = ({
       }
     };
 
-    eventSource.onerror = (err) => {
+    es.onerror = (err) => {
       console.error("SSE connection error:", err);
-      eventSource.close();
+      es.close();
+      setEventSource(null);
     };
 
-    return () => eventSource.close();
-  }, [isOpen, webhookUrl, sessionId]);
+    setEventSource(es);
+  };
 
   const sendMessage = async (message: string) => {
     if (!message.trim() || isLoading) return;
+
+    // start SSE only when user sends first message
+    startSSE();
 
     const userMessage: Message = {
       id: crypto.randomUUID(),
@@ -107,7 +109,7 @@ const N8nChat: React.FC<N8nChatProps> = ({
           action: "sendMessage",
         }),
       });
-      // reply will come automatically via SSE
+      // reply comes via SSE
     } catch (error) {
       setMessages((prev) => [
         ...prev,
@@ -162,8 +164,6 @@ const N8nChat: React.FC<N8nChatProps> = ({
             </div>
           )}
         </div>
-
-        {/* Glow effect */}
         <span
           className="absolute -inset-1 rounded-full opacity-35 -z-10 blur-sm"
           style={{
@@ -212,42 +212,32 @@ const N8nChat: React.FC<N8nChatProps> = ({
                 scrollbarColor: "#d1d5db transparent",
               }}
             >
-              {messages.length === 0 ? (
-                <p className="text-[13px] text-gray-600">
-                  Start the conversation below.
-                </p>
-              ) : (
-                messages.map((message) => (
+              {messages.map((message) => (
+                <div
+                  key={message.id}
+                  className={`flex my-2 ${
+                    message.sender === "user" ? "justify-end" : "justify-start"
+                  }`}
+                >
                   <div
-                    key={message.id}
-                    className={`flex my-2 ${
-                      message.sender === "user"
-                        ? "justify-end"
-                        : "justify-start"
+                    className={`max-w-[80%] px-3 py-2.5 rounded-2xl text-[13px] leading-relaxed animate-enter ${
+                      message.sender === "user" ? "text-white" : "text-gray-700"
                     }`}
-                  >
-                    <div
-                      className={`max-w-[80%] px-3 py-2.5 rounded-2xl text-[13px] leading-relaxed animate-enter ${
+                    style={{
+                      background:
                         message.sender === "user"
-                          ? "text-white"
-                          : "text-gray-700"
-                      }`}
-                      style={{
-                        background:
-                          message.sender === "user"
-                            ? `hsl(var(--primary-color))`
-                            : "rgba(0,0,0,0.04)",
-                        boxShadow:
-                          message.sender === "user"
-                            ? "0 8px 20px rgba(79,70,229,0.35)"
-                            : "none",
-                      }}
-                    >
-                      {message.text}
-                    </div>
+                          ? `hsl(var(--primary-color))`
+                          : "rgba(0,0,0,0.04)",
+                      boxShadow:
+                        message.sender === "user"
+                          ? "0 8px 20px rgba(79,70,229,0.35)"
+                          : "none",
+                    }}
+                  >
+                    {message.text}
                   </div>
-                ))
-              )}
+                </div>
+              ))}
             </div>
           </div>
 
