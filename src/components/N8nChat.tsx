@@ -96,7 +96,6 @@ const N8nChat: React.FC<N8nChatProps> = ({
         },
         body: JSON.stringify({
           sessionId,
-          action: "sendMessage",
           chatInput: message,
         }),
       });
