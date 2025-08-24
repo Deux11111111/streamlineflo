@@ -69,15 +69,14 @@ const N8nChat: React.FC<N8nChatProps> = ({
     setMessages((prev) => [...prev, userMessage]);
     setInputValue("");
 
-    // Correct format for n8n Chat Trigger - action goes in payload, not URL
+    // Correct format per n8n docs - action as query parameter
     const payload = {
       sessionId: sessionId,
-      chatInput: message,
-      action: "sendMessage"
+      chatInput: message
     };
 
-    // Use the original webhook URL without query parameters
-    const urlToUse = webhookUrl;
+    // Add action=sendMessage as query parameter per n8n docs
+    const urlToUse = `${webhookUrl}?action=sendMessage`;
 
     addDebugInfo(`POST payload: ${JSON.stringify(payload)}`);
     addDebugInfo(`POST URL: ${urlToUse}`);
