@@ -115,10 +115,10 @@ const N8nChat: React.FC<N8nChatProps> = ({
     setMessages((prev) => [...prev, userMessage]);
     setInputValue("");
 
+    // Try different payload formats for n8n Chat Trigger
     const payload = {
-      sessionId,
-      action: "sendMessage",
       chatInput: message,
+      sessionId: sessionId
     };
 
     addDebugInfo(`POST payload: ${JSON.stringify(payload)}`);
