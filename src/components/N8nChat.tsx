@@ -46,10 +46,12 @@ const N8nChat: React.FC<N8nChatProps> = ({
     }
   }, [messages]);
 
-  // start SSE connection
   const startSSE = () => {
-    if (eventSource) return; // already connected
-    const es = new EventSource(`${webhookUrl}/stream?sessionId=${encodeURIComponent(sessionId)}`);
+    if (eventSource) return; // SSE already started
+
+    const es = new EventSource(
+      `${webhookUrl}/stream?sessionId=${encodeURIComponent(sessionId)}`
+    );
 
     es.onmessage = (event) => {
       try {
@@ -82,8 +84,7 @@ const N8nChat: React.FC<N8nChatProps> = ({
   const sendMessage = async (message: string) => {
     if (!message.trim() || isLoading) return;
 
-    // start SSE only when user sends the first message
-    startSSE();
+    setIsLoading(true);
 
     const userMessage: Message = {
       id: crypto.randomUUID(),
@@ -91,25 +92,29 @@ const N8nChat: React.FC<N8nChatProps> = ({
       sender: "user",
       timestamp: new Date(),
     };
+
     setMessages((prev) => [...prev, userMessage]);
     setInputValue("");
-    setIsLoading(true);
 
     try {
-      await fetch(webhookUrl, {
+      const res = await fetch(webhookUrl, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           sessionId,
           chatInput: message,
           action: "sendMessage",
         }),
       });
-      // SSE delivers the assistant response
+
+      if (!res.ok) {
+        throw new Error("Failed to send message");
+      }
+
+      // Only start SSE after first POST succeeds
+      if (!eventSource) startSSE();
     } catch (error) {
-      console.error(error);
+      console.error("Send message error:", error);
       setMessages((prev) => [
         ...prev,
         {
@@ -143,53 +148,59 @@ const N8nChat: React.FC<N8nChatProps> = ({
 
       {/* Chat Panel */}
       {isOpen && (
-        <div className="mt-3 w-[min(90vw,380px)] rounded-[18px] overflow-hidden border animate-enter bg-white/80 backdrop-blur-md shadow-lg">
+        <div
+          className="mt-3 w-[min(90vw,380px)] rounded-[18px] overflow-hidden border animate-enter"
+          style={{
+            background: "rgba(255,255,255,0.82)",
+            borderColor: "rgba(2,6,23,0.06)",
+            boxShadow: "var(--chat-shadow)",
+            backdropFilter: "blur(12px)",
+            WebkitBackdropFilter: "blur(12px)",
+          }}
+          role="dialog"
+          aria-label="Chat widget"
+        >
           {/* Header */}
-          <div className="px-4 py-3.5 border-b border-gray-200">
-            <h2 className="text-[15px] font-semibold text-gray-900">{title}</h2>
-            <p className="mt-1.5 text-[12.5px] text-gray-600">{subtitle}</p>
+          <div className="px-4 py-3.5 border-b">
+            <h2 className="m-0 text-[15px] font-semibold leading-tight tracking-wide text-gray-900">{title}</h2>
+            <p className="mt-1.5 mb-0 text-[12.5px] text-gray-600">{subtitle}</p>
           </div>
 
           {/* Chat Body */}
           <div className="h-80 overflow-hidden">
             <div ref={scrollRef} className="h-full overflow-auto px-3 py-3">
-              {messages.map((msg) => (
-                <div
-                  key={msg.id}
-                  className={`flex my-2 ${msg.sender === "user" ? "justify-end" : "justify-start"}`}
-                >
+              {messages.map((message) => (
+                <div key={message.id} className={`flex my-2 ${message.sender === "user" ? "justify-end" : "justify-start"}`}>
                   <div
-                    className={`max-w-[80%] px-3 py-2.5 rounded-2xl text-[13px] leading-relaxed ${
-                      msg.sender === "user" ? "text-white" : "text-gray-700"
-                    }`}
+                    className={`max-w-[80%] px-3 py-2.5 rounded-2xl text-[13px] leading-relaxed animate-enter ${message.sender === "user" ? "text-white" : "text-gray-700"}`}
                     style={{
-                      background: msg.sender === "user" ? "#4f46e5" : "rgba(0,0,0,0.04)",
-                      boxShadow: msg.sender === "user" ? "0 8px 20px rgba(79,70,229,0.35)" : "none",
+                      background: message.sender === "user" ? "hsl(var(--primary-color))" : "rgba(0,0,0,0.04)",
+                      boxShadow: message.sender === "user" ? "0 8px 20px rgba(79,70,229,0.35)" : "none",
                     }}
                   >
-                    {msg.text}
+                    {message.text}
                   </div>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* Footer */}
-          <form onSubmit={handleSubmit} className="flex gap-2 border-t p-2.5 items-center border-gray-200 bg-white/60 backdrop-blur-sm">
+          {/* Footer / Input */}
+          <form onSubmit={handleSubmit} className="flex gap-2 border-t p-2.5 items-center">
             <input
               type="text"
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               placeholder="Type your message..."
-              className="flex-1 h-11 px-3.5 border rounded-full text-sm outline-none"
+              className="flex-1 h-11 px-3.5 border rounded-full text-sm outline-none transition-all duration-200"
               disabled={isLoading}
             />
             <button
               type="submit"
               disabled={isLoading || !inputValue.trim()}
-              className="h-11 px-4 text-white rounded-full bg-gray-800 hover:bg-gray-900 inline-flex items-center gap-2 transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed"
+              className="h-11 px-4 text-white border-0 rounded-full text-sm cursor-pointer inline-flex items-center gap-2 transition-all duration-200 hover:-translate-y-0.5 disabled:opacity-60 disabled:cursor-not-allowed disabled:transform-none"
             >
-              {isLoading ? <div className="w-4 h-4 border-2 border-white/35 border-t-white rounded-full animate-spin" /> : <Send className="w-4 h-4" />}
+              {isLoading ? <div className="w-4 h-4 border-2 border-white/35 border-t-white rounded-full animate-spin" /> : <Send className="w-[18px] h-[18px]" />}
               <span>Send</span>
             </button>
           </form>
