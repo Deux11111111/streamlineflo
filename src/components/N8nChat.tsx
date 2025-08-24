@@ -97,6 +97,7 @@ const N8nChat: React.FC<N8nChatProps> = ({
         body: JSON.stringify({
           sessionId,
           chatInput: message,
+          action: "sendMessage",
         }),
       });
       // reply will come automatically via SSE
