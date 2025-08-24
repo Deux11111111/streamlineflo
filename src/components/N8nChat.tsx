@@ -86,8 +86,7 @@ const N8nChat: React.FC<N8nChatProps> = ({
       const res = await fetch(urlToUse, {
         method: "POST",
         headers: { 
-          "Content-Type": "application/json",
-          "Accept": "application/json"
+          "Content-Type": "application/json"
         },
         body: JSON.stringify(payload),
       });
