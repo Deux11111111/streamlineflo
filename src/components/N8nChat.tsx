@@ -9,7 +9,7 @@ interface Message {
 }
 
 interface N8nChatProps {
-  webhookUrl: string;
+  webhookUrl: string; // your n8n Chat Trigger webhook
   title?: string;
   subtitle?: string;
   position?: "bottom-right" | "bottom-left";
@@ -25,7 +25,7 @@ const N8nChat: React.FC<N8nChatProps> = ({
   const [messages, setMessages] = useState<Message[]>([
     {
       id: crypto.randomUUID(),
-      text: "Hey! Welcome to the chat",
+      text: "Hello! How can I help you today?",
       sender: "assistant",
       timestamp: new Date(),
     },
@@ -35,16 +35,18 @@ const N8nChat: React.FC<N8nChatProps> = ({
   const scrollRef = useRef<HTMLDivElement>(null);
   const [eventSource, setEventSource] = useState<EventSource | null>(null);
 
+  // persistent sessionId
   const [sessionId] = useState(() => "chat_session_" + crypto.randomUUID());
   const positionClass = position === "bottom-left" ? "left-6" : "right-6";
 
-  // Scroll to bottom when messages change
+  // auto-scroll on messages update
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages]);
 
+  // SSE listener
   const startSSE = () => {
     if (eventSource) return;
 
@@ -78,6 +80,7 @@ const N8nChat: React.FC<N8nChatProps> = ({
     setEventSource(es);
   };
 
+  // send message
   const sendMessage = async (message: string) => {
     if (!message.trim() || isLoading) return;
 
@@ -89,13 +92,18 @@ const N8nChat: React.FC<N8nChatProps> = ({
       sender: "user",
       timestamp: new Date(),
     };
+
     setMessages((prev) => [...prev, userMessage]);
     setInputValue("");
 
     try {
       const res = await fetch(webhookUrl, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+        },
+        mode: "cors",
         body: JSON.stringify([
           {
             sessionId,
@@ -106,12 +114,12 @@ const N8nChat: React.FC<N8nChatProps> = ({
       });
 
       if (!res.ok) {
-        throw new Error("Failed to send message");
+        throw new Error(`Failed to send message: ${res.status}`);
       }
 
       if (!eventSource) startSSE();
-    } catch (err) {
-      console.error("Send message error:", err);
+    } catch (error) {
+      console.error("Send message error:", error);
       setMessages((prev) => [
         ...prev,
         {
@@ -133,6 +141,7 @@ const N8nChat: React.FC<N8nChatProps> = ({
 
   return (
     <div className={`fixed z-[2147483646] bottom-6 ${positionClass} font-sans text-gray-900`}>
+      {/* Toggle Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="w-12 h-12 rounded-full border-0 cursor-pointer relative text-white bg-indigo-600 hover:bg-indigo-700 inline-flex items-center justify-center transition-all duration-200 hover:-translate-y-0.5"
@@ -142,6 +151,7 @@ const N8nChat: React.FC<N8nChatProps> = ({
         {isOpen ? <X className="w-5 h-5" /> : <MessageCircle className="w-5 h-5" />}
       </button>
 
+      {/* Chat Panel */}
       {isOpen && (
         <div
           className="mt-3 w-[min(90vw,380px)] rounded-[18px] overflow-hidden border animate-enter"
@@ -155,17 +165,24 @@ const N8nChat: React.FC<N8nChatProps> = ({
           role="dialog"
           aria-label="Chat widget"
         >
+          {/* Header */}
           <div className="px-4 py-3.5 border-b">
             <h2 className="m-0 text-[15px] font-semibold leading-tight tracking-wide text-gray-900">{title}</h2>
             {subtitle && <p className="mt-1.5 mb-0 text-[12.5px] text-gray-600">{subtitle}</p>}
           </div>
 
+          {/* Body */}
           <div className="h-80 overflow-hidden">
             <div ref={scrollRef} className="h-full overflow-auto px-3 py-3">
               {messages.map((message) => (
-                <div key={message.id} className={`flex my-2 ${message.sender === "user" ? "justify-end" : "justify-start"}`}>
+                <div
+                  key={message.id}
+                  className={`flex my-2 ${message.sender === "user" ? "justify-end" : "justify-start"}`}
+                >
                   <div
-                    className={`max-w-[80%] px-3 py-2.5 rounded-2xl text-[13px] leading-relaxed animate-enter ${message.sender === "user" ? "text-white" : "text-gray-700"}`}
+                    className={`max-w-[80%] px-3 py-2.5 rounded-2xl text-[13px] leading-relaxed animate-enter ${
+                      message.sender === "user" ? "text-white" : "text-gray-700"
+                    }`}
                     style={{
                       background: message.sender === "user" ? "hsl(var(--primary-color))" : "rgba(0,0,0,0.04)",
                       boxShadow: message.sender === "user" ? "0 8px 20px rgba(79,70,229,0.35)" : "none",
@@ -178,6 +195,7 @@ const N8nChat: React.FC<N8nChatProps> = ({
             </div>
           </div>
 
+          {/* Footer */}
           <form onSubmit={handleSubmit} className="flex gap-2 border-t p-2.5 items-center">
             <input
               type="text"
