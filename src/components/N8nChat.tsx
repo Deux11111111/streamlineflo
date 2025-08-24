@@ -9,14 +9,13 @@ interface Message {
 }
 
 interface N8nChatProps {
-  webhookUrl: string; // your webhook URL (should end with /chat)
+  webhookUrl: string; // your Chat Trigger URL
   title?: string;
   subtitle?: string;
   position?: "bottom-right" | "bottom-left";
 }
 
 const N8nChat: React.FC<N8nChatProps> = ({
-  // ⬇️ your confirmed production URL
   webhookUrl = "https://streamline1.app.n8n.cloud/webhook/c803253c-f26b-4a80-83a5-53fad70dbdb6/chat",
   title = "Your Personal Assistant",
   subtitle = "How can I help you today?",
@@ -36,62 +35,41 @@ const N8nChat: React.FC<N8nChatProps> = ({
   const scrollRef = useRef<HTMLDivElement>(null);
   const [eventSource, setEventSource] = useState<EventSource | null>(null);
 
-  // persistent sessionId across chat
+  // Persistent sessionId across chat
   const [sessionId] = useState(() => "chat_session_" + crypto.randomUUID());
   const positionClass = position === "bottom-left" ? "left-6" : "right-6";
 
-  // auto-scroll
+  // Auto-scroll on new messages
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages]);
 
-  // close SSE when component unmounts or chat is closed
-  useEffect(() => {
-    return () => {
-      if (eventSource) {
-        eventSource.close();
-      }
-    };
-  }, [eventSource]);
-
-  // Build a correct SSE URL whether webhookUrl ends with /chat or not
-  const buildStreamUrl = () => {
-    const trimmed = webhookUrl.replace(/\/+$/, "");
-    const withChat = /\/chat$/.test(trimmed) ? trimmed : `${trimmed}/chat`;
-    const url = `${withChat}/stream?sessionId=${encodeURIComponent(sessionId)}`;
-    return url;
-  };
-
+  // Start SSE to receive messages from Chat Trigger
   const startSSE = () => {
-    if (eventSource) return; // already open
-    const sseUrl = buildStreamUrl();
-    console.log("🔹 Opening SSE:", sseUrl);
+    if (eventSource) return;
 
-    const es = new EventSource(sseUrl);
+    const es = new EventSource(
+      `${webhookUrl}/stream?sessionId=${encodeURIComponent(sessionId)}`
+    );
 
     es.onmessage = (event) => {
-      // n8n streams JSON lines like: { type: "item" | "begin" | "end", content?: "..." }
       try {
         const data = JSON.parse(event.data);
-        if (data && typeof data === "object") {
-          if (typeof data.content === "string" && data.content.length) {
-            // display streamed chunks
-            setMessages((prev) => [
-              ...prev,
-              {
-                id: crypto.randomUUID(),
-                text: data.content,
-                sender: "assistant",
-                timestamp: new Date(),
-              },
-            ]);
-          }
-          // you could also check data.type === "end" to do something on completion
+        if (data.content) {
+          setMessages((prev) => [
+            ...prev,
+            {
+              id: crypto.randomUUID(),
+              text: data.content,
+              sender: "assistant",
+              timestamp: new Date(),
+            },
+          ]);
         }
-      } catch {
-        // ignore keep-alives or non-JSON lines
+      } catch (err) {
+        console.error("Error parsing SSE message:", err);
       }
     };
 
@@ -104,6 +82,7 @@ const N8nChat: React.FC<N8nChatProps> = ({
     setEventSource(es);
   };
 
+  // Send message to Chat Trigger
   const sendMessage = async (message: string) => {
     if (!message.trim() || isLoading) return;
 
@@ -119,29 +98,19 @@ const N8nChat: React.FC<N8nChatProps> = ({
     setMessages((prev) => [...prev, userMessage]);
     setInputValue("");
 
-    const payload = {
-      sessionId,
-      action: "sendMessage",
-      chatInput: message,
-    };
-
-    console.log("🔹 Sending to n8n:", payload);
-
     try {
       const res = await fetch(webhookUrl, {
         method: "POST",
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          sessionId,
+          action: "sendMessage",
+          chatInput: message,
+        }),
       });
 
-      const raw = await res.text();
-      console.log("🔹 n8n raw response:", raw);
-
       if (!res.ok) {
-        throw new Error(`n8n returned ${res.status}: ${raw}`);
+        throw new Error("Failed to send message");
       }
 
       // Start SSE after first successful POST
@@ -152,8 +121,7 @@ const N8nChat: React.FC<N8nChatProps> = ({
         ...prev,
         {
           id: crypto.randomUUID(),
-          text:
-            "Sorry, I'm having trouble connecting right now. Please try again.",
+          text: "Sorry, I'm having trouble connecting right now. Please try again.",
           sender: "assistant",
           timestamp: new Date(),
         },
@@ -172,14 +140,7 @@ const N8nChat: React.FC<N8nChatProps> = ({
     <div className={`fixed z-[2147483646] bottom-6 ${positionClass} font-sans text-gray-900`}>
       {/* Chat Toggle Button */}
       <button
-        onClick={() => {
-          setIsOpen(!isOpen);
-          // close SSE when closing the widget (optional)
-          if (isOpen && eventSource) {
-            eventSource.close();
-            setEventSource(null);
-          }
-        }}
+        onClick={() => setIsOpen(!isOpen)}
         className="w-12 h-12 rounded-full border-0 cursor-pointer relative text-white bg-indigo-600 hover:bg-indigo-700 inline-flex items-center justify-center transition-all duration-200 hover:-translate-y-0.5"
         aria-expanded={isOpen}
         title={isOpen ? "Close chat" : "Open chat"}
