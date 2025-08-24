@@ -44,7 +44,7 @@ const N8nChat: React.FC<N8nChatProps> = ({
     if (!isOpen) return;
 
     const eventSource = new EventSource(
-      `${webhookUrl}?sessionId=${encodeURIComponent(sessionId)}`
+      `${webhookUrl}/stream?sessionId=${encodeURIComponent(sessionId)}`
     );
 
     eventSource.onmessage = (event) => {
