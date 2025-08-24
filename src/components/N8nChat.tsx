@@ -46,21 +46,20 @@ const N8nChat: React.FC<N8nChatProps> = ({
     }
   }, [messages]);
 
+  // start SSE connection
   const startSSE = () => {
-    if (eventSource) return; // SSE already started
-    const es = new EventSource(
-      `${webhookUrl}/stream?sessionId=${encodeURIComponent(sessionId)}`
-    );
+    if (eventSource) return; // already connected
+    const es = new EventSource(`${webhookUrl}/stream?sessionId=${encodeURIComponent(sessionId)}`);
 
     es.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
-        if (data.text) {
+        if (data.content) {
           setMessages((prev) => [
             ...prev,
             {
               id: crypto.randomUUID(),
-              text: data.text,
+              text: data.content,
               sender: "assistant",
               timestamp: new Date(),
             },
@@ -83,7 +82,7 @@ const N8nChat: React.FC<N8nChatProps> = ({
   const sendMessage = async (message: string) => {
     if (!message.trim() || isLoading) return;
 
-    // start SSE only when user sends first message
+    // start SSE only when user sends the first message
     startSSE();
 
     const userMessage: Message = {
@@ -92,7 +91,6 @@ const N8nChat: React.FC<N8nChatProps> = ({
       sender: "user",
       timestamp: new Date(),
     };
-
     setMessages((prev) => [...prev, userMessage]);
     setInputValue("");
     setIsLoading(true);
@@ -109,8 +107,9 @@ const N8nChat: React.FC<N8nChatProps> = ({
           action: "sendMessage",
         }),
       });
-      // reply comes via SSE
+      // SSE delivers the assistant response
     } catch (error) {
+      console.error(error);
       setMessages((prev) => [
         ...prev,
         {
@@ -131,153 +130,66 @@ const N8nChat: React.FC<N8nChatProps> = ({
   };
 
   return (
-    <div
-      className={`fixed z-[2147483646] bottom-6 ${positionClass} font-sans text-gray-900`}
-    >
+    <div className={`fixed z-[2147483646] bottom-6 ${positionClass} font-sans text-gray-900`}>
       {/* Chat Toggle Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="w-12 h-12 rounded-full border-0 cursor-pointer relative text-white bg-indigo-600 hover:bg-indigo-700 inline-flex items-center justify-center transition-all duration-200 hover:-translate-y-0.5"
-        style={{
-          background: `hsl(var(--primary-color))`,
-          boxShadow: "var(--chat-glow)",
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.background = `hsl(var(--primary-hover-color))`;
-          e.currentTarget.style.boxShadow = "var(--chat-glow-hover)";
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.background = `hsl(var(--primary-color))`;
-          e.currentTarget.style.boxShadow = "var(--chat-glow)";
-        }}
         aria-expanded={isOpen}
         title={isOpen ? "Close chat" : "Open chat"}
       >
-        <div className="absolute inset-0">
-          {isOpen ? (
-            <div className="absolute inset-0 flex items-center justify-center">
-              <X className="w-5 h-5" />
-            </div>
-          ) : (
-            <div className="absolute inset-0 flex items-center justify-center">
-              <MessageCircle className="w-5 h-5" />
-            </div>
-          )}
-        </div>
-        <span
-          className="absolute -inset-1 rounded-full opacity-35 -z-10 blur-sm"
-          style={{
-            background:
-              "radial-gradient(60% 60% at 50% 50%, rgba(79,70,229,0.35), rgba(79,70,229,0))",
-          }}
-        />
+        {isOpen ? <X className="w-5 h-5" /> : <MessageCircle className="w-5 h-5" />}
       </button>
 
       {/* Chat Panel */}
       {isOpen && (
-        <div
-          className="mt-3 w-[min(90vw,380px)] rounded-[18px] overflow-hidden border animate-enter"
-          style={{
-            background: "rgba(255,255,255,0.82)",
-            borderColor: "rgba(2,6,23,0.06)",
-            boxShadow: "var(--chat-shadow)",
-            backdropFilter: "blur(12px)",
-            WebkitBackdropFilter: "blur(12px)",
-          }}
-          role="dialog"
-          aria-label="Chat widget"
-        >
+        <div className="mt-3 w-[min(90vw,380px)] rounded-[18px] overflow-hidden border animate-enter bg-white/80 backdrop-blur-md shadow-lg">
           {/* Header */}
-          <div
-            className="px-4 py-3.5 border-b"
-            style={{
-              borderBottomColor: "rgba(2,6,23,0.06)",
-              background:
-                "linear-gradient(90deg, rgba(79,70,229,0.10), rgba(79,70,229,0))",
-            }}
-          >
-            <h2 className="m-0 text-[15px] font-semibold leading-tight tracking-wide text-gray-900">
-              {title}
-            </h2>
-            <p className="mt-1.5 mb-0 text-[12.5px] text-gray-600">{subtitle}</p>
+          <div className="px-4 py-3.5 border-b border-gray-200">
+            <h2 className="text-[15px] font-semibold text-gray-900">{title}</h2>
+            <p className="mt-1.5 text-[12.5px] text-gray-600">{subtitle}</p>
           </div>
 
           {/* Chat Body */}
           <div className="h-80 overflow-hidden">
-            <div
-              ref={scrollRef}
-              className="h-full overflow-auto px-3 py-3"
-              style={{
-                scrollbarWidth: "thin",
-                scrollbarColor: "#d1d5db transparent",
-              }}
-            >
-              {messages.map((message) => (
+            <div ref={scrollRef} className="h-full overflow-auto px-3 py-3">
+              {messages.map((msg) => (
                 <div
-                  key={message.id}
-                  className={`flex my-2 ${
-                    message.sender === "user" ? "justify-end" : "justify-start"
-                  }`}
+                  key={msg.id}
+                  className={`flex my-2 ${msg.sender === "user" ? "justify-end" : "justify-start"}`}
                 >
                   <div
-                    className={`max-w-[80%] px-3 py-2.5 rounded-2xl text-[13px] leading-relaxed animate-enter ${
-                      message.sender === "user" ? "text-white" : "text-gray-700"
+                    className={`max-w-[80%] px-3 py-2.5 rounded-2xl text-[13px] leading-relaxed ${
+                      msg.sender === "user" ? "text-white" : "text-gray-700"
                     }`}
                     style={{
-                      background:
-                        message.sender === "user"
-                          ? `hsl(var(--primary-color))`
-                          : "rgba(0,0,0,0.04)",
-                      boxShadow:
-                        message.sender === "user"
-                          ? "0 8px 20px rgba(79,70,229,0.35)"
-                          : "none",
+                      background: msg.sender === "user" ? "#4f46e5" : "rgba(0,0,0,0.04)",
+                      boxShadow: msg.sender === "user" ? "0 8px 20px rgba(79,70,229,0.35)" : "none",
                     }}
                   >
-                    {message.text}
+                    {msg.text}
                   </div>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* Footer / Input */}
-          <form
-            onSubmit={handleSubmit}
-            className="flex gap-2 border-t p-2.5 items-center"
-            style={{
-              borderTopColor: "rgba(2,6,23,0.06)",
-              background: "rgba(255,255,255,0.66)",
-              backdropFilter: "blur(10px)",
-            }}
-          >
+          {/* Footer */}
+          <form onSubmit={handleSubmit} className="flex gap-2 border-t p-2.5 items-center border-gray-200 bg-white/60 backdrop-blur-sm">
             <input
               type="text"
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               placeholder="Type your message..."
-              className="flex-1 h-11 px-3.5 border rounded-full text-sm outline-none transition-all duration-200"
-              style={{
-                borderColor: "rgba(0,0,0,0.10)",
-                background: "rgba(255,255,255,0.9)",
-              }}
+              className="flex-1 h-11 px-3.5 border rounded-full text-sm outline-none"
               disabled={isLoading}
-              aria-label="Message"
             />
             <button
               type="submit"
               disabled={isLoading || !inputValue.trim()}
-              className="h-11 px-4 text-white border-0 rounded-full text-sm cursor-pointer inline-flex items-center gap-2 transition-all duration-200 hover:-translate-y-0.5 disabled:opacity-60 disabled:cursor-not-allowed disabled:transform-none"
-              style={{
-                background: `hsl(var(--dark-color))`,
-                boxShadow: "0 8px 20px rgba(31,41,55,0.18)",
-              }}
+              className="h-11 px-4 text-white rounded-full bg-gray-800 hover:bg-gray-900 inline-flex items-center gap-2 transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              {isLoading ? (
-                <div className="w-4 h-4 border-2 border-white/35 border-t-white rounded-full animate-spin" />
-              ) : (
-                <Send className="w-[18px] h-[18px]" />
-              )}
+              {isLoading ? <div className="w-4 h-4 border-2 border-white/35 border-t-white rounded-full animate-spin" /> : <Send className="w-4 h-4" />}
               <span>Send</span>
             </button>
           </form>
