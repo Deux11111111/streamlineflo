@@ -9,9 +9,9 @@ interface Message {
 }
 
 interface N8nChatProps {
-  webhookUrl: string; // e.g. https://your-subdomain.n8n.cloud/webhook/.../chat
-  title?: string;
-  subtitle?: string;
+  webhookUrl: "https://adrianzap.app.n8n.cloud/webhook/c803253c-f26b-4a80-83a5-53fad70dbdb6/chat"
+  title?: "Your Personal Assistant"
+  subtitle?: "How can I help you today?"
   position?: "bottom-right" | "bottom-left";
 }
 
