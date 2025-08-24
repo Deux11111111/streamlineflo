@@ -9,13 +9,14 @@ interface Message {
 }
 
 interface N8nChatProps {
-  webhookUrl: string;
+  webhookUrl: string; // your webhook URL (should end with /chat)
   title?: string;
   subtitle?: string;
   position?: "bottom-right" | "bottom-left";
 }
 
 const N8nChat: React.FC<N8nChatProps> = ({
+  // ⬇️ your confirmed production URL
   webhookUrl = "https://streamline1.app.n8n.cloud/webhook/c803253c-f26b-4a80-83a5-53fad70dbdb6/chat",
   title = "Your Personal Assistant",
   subtitle = "How can I help you today?",
@@ -39,36 +40,58 @@ const N8nChat: React.FC<N8nChatProps> = ({
   const [sessionId] = useState(() => "chat_session_" + crypto.randomUUID());
   const positionClass = position === "bottom-left" ? "left-6" : "right-6";
 
-  // auto scroll to bottom when messages change
+  // auto-scroll
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages]);
 
-  const startSSE = () => {
-    if (eventSource) return; // SSE already started
+  // close SSE when component unmounts or chat is closed
+  useEffect(() => {
+    return () => {
+      if (eventSource) {
+        eventSource.close();
+      }
+    };
+  }, [eventSource]);
 
-    const es = new EventSource(
-      `${webhookUrl.replace(/\/chat$/, "")}/stream?sessionId=${encodeURIComponent(sessionId)}`
-    );
+  // Build a correct SSE URL whether webhookUrl ends with /chat or not
+  const buildStreamUrl = () => {
+    const trimmed = webhookUrl.replace(/\/+$/, "");
+    const withChat = /\/chat$/.test(trimmed) ? trimmed : `${trimmed}/chat`;
+    const url = `${withChat}/stream?sessionId=${encodeURIComponent(sessionId)}`;
+    return url;
+  };
+
+  const startSSE = () => {
+    if (eventSource) return; // already open
+    const sseUrl = buildStreamUrl();
+    console.log("🔹 Opening SSE:", sseUrl);
+
+    const es = new EventSource(sseUrl);
 
     es.onmessage = (event) => {
+      // n8n streams JSON lines like: { type: "item" | "begin" | "end", content?: "..." }
       try {
         const data = JSON.parse(event.data);
-        if (data.content) {
-          setMessages((prev) => [
-            ...prev,
-            {
-              id: crypto.randomUUID(),
-              text: data.content,
-              sender: "assistant",
-              timestamp: new Date(),
-            },
-          ]);
+        if (data && typeof data === "object") {
+          if (typeof data.content === "string" && data.content.length) {
+            // display streamed chunks
+            setMessages((prev) => [
+              ...prev,
+              {
+                id: crypto.randomUUID(),
+                text: data.content,
+                sender: "assistant",
+                timestamp: new Date(),
+              },
+            ]);
+          }
+          // you could also check data.type === "end" to do something on completion
         }
-      } catch (err) {
-        console.error("Error parsing SSE message:", err);
+      } catch {
+        // ignore keep-alives or non-JSON lines
       }
     };
 
@@ -114,14 +137,14 @@ const N8nChat: React.FC<N8nChatProps> = ({
         body: JSON.stringify(payload),
       });
 
-      const text = await res.text();
-      console.log("🔹 n8n raw response:", text);
+      const raw = await res.text();
+      console.log("🔹 n8n raw response:", raw);
 
       if (!res.ok) {
-        throw new Error(`n8n returned ${res.status}: ${text}`);
+        throw new Error(`n8n returned ${res.status}: ${raw}`);
       }
 
-      // Start SSE after first POST succeeds
+      // Start SSE after first successful POST
       if (!eventSource) startSSE();
     } catch (error) {
       console.error("Send message error:", error);
@@ -129,7 +152,8 @@ const N8nChat: React.FC<N8nChatProps> = ({
         ...prev,
         {
           id: crypto.randomUUID(),
-          text: "Sorry, I'm having trouble connecting right now. Please try again.",
+          text:
+            "Sorry, I'm having trouble connecting right now. Please try again.",
           sender: "assistant",
           timestamp: new Date(),
         },
@@ -148,7 +172,14 @@ const N8nChat: React.FC<N8nChatProps> = ({
     <div className={`fixed z-[2147483646] bottom-6 ${positionClass} font-sans text-gray-900`}>
       {/* Chat Toggle Button */}
       <button
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={() => {
+          setIsOpen(!isOpen);
+          // close SSE when closing the widget (optional)
+          if (isOpen && eventSource) {
+            eventSource.close();
+            setEventSource(null);
+          }
+        }}
         className="w-12 h-12 rounded-full border-0 cursor-pointer relative text-white bg-indigo-600 hover:bg-indigo-700 inline-flex items-center justify-center transition-all duration-200 hover:-translate-y-0.5"
         aria-expanded={isOpen}
         title={isOpen ? "Close chat" : "Open chat"}
@@ -172,7 +203,9 @@ const N8nChat: React.FC<N8nChatProps> = ({
         >
           {/* Header */}
           <div className="px-4 py-3.5 border-b">
-            <h2 className="m-0 text-[15px] font-semibold leading-tight tracking-wide text-gray-900">{title}</h2>
+            <h2 className="m-0 text-[15px] font-semibold leading-tight tracking-wide text-gray-900">
+              {title}
+            </h2>
             <p className="mt-1.5 mb-0 text-[12.5px] text-gray-600">{subtitle}</p>
           </div>
 
@@ -180,12 +213,25 @@ const N8nChat: React.FC<N8nChatProps> = ({
           <div className="h-80 overflow-hidden">
             <div ref={scrollRef} className="h-full overflow-auto px-3 py-3">
               {messages.map((message) => (
-                <div key={message.id} className={`flex my-2 ${message.sender === "user" ? "justify-end" : "justify-start"}`}>
+                <div
+                  key={message.id}
+                  className={`flex my-2 ${
+                    message.sender === "user" ? "justify-end" : "justify-start"
+                  }`}
+                >
                   <div
-                    className={`max-w-[80%] px-3 py-2.5 rounded-2xl text-[13px] leading-relaxed animate-enter ${message.sender === "user" ? "text-white" : "text-gray-700"}`}
+                    className={`max-w-[80%] px-3 py-2.5 rounded-2xl text-[13px] leading-relaxed animate-enter ${
+                      message.sender === "user" ? "text-white" : "text-gray-700"
+                    }`}
                     style={{
-                      background: message.sender === "user" ? "hsl(var(--primary-color))" : "rgba(0,0,0,0.04)",
-                      boxShadow: message.sender === "user" ? "0 8px 20px rgba(79,70,229,0.35)" : "none",
+                      background:
+                        message.sender === "user"
+                          ? "hsl(var(--primary-color))"
+                          : "rgba(0,0,0,0.04)",
+                      boxShadow:
+                        message.sender === "user"
+                          ? "0 8px 20px rgba(79,70,229,0.35)"
+                          : "none",
                     }}
                   >
                     {message.text}
@@ -210,7 +256,11 @@ const N8nChat: React.FC<N8nChatProps> = ({
               disabled={isLoading || !inputValue.trim()}
               className="h-11 px-4 text-white border-0 rounded-full text-sm cursor-pointer inline-flex items-center gap-2 transition-all duration-200 hover:-translate-y-0.5 disabled:opacity-60 disabled:cursor-not-allowed disabled:transform-none"
             >
-              {isLoading ? <div className="w-4 h-4 border-2 border-white/35 border-t-white rounded-full animate-spin" /> : <Send className="w-[18px] h-[18px]" />}
+              {isLoading ? (
+                <div className="w-4 h-4 border-2 border-white/35 border-t-white rounded-full animate-spin" />
+              ) : (
+                <Send className="w-[18px] h-[18px]" />
+              )}
               <span>Send</span>
             </button>
           </form>
@@ -221,4 +271,3 @@ const N8nChat: React.FC<N8nChatProps> = ({
 };
 
 export default N8nChat;
-
