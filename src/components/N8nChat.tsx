@@ -33,7 +33,9 @@ const N8nChat: React.FC<N8nChatProps> = ({
   const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [eventSource, setEventSource] = useState<EventSource | null>(null);
   const [debugInfo, setDebugInfo] = useState<string[]>([]);
+  const [currentStreamingMessage, setCurrentStreamingMessage] = useState<string>("");
 
   // persistent sessionId across chat
   const [sessionId] = useState(() => "chat_session_" + crypto.randomUUID());
@@ -67,20 +69,21 @@ const N8nChat: React.FC<N8nChatProps> = ({
     setMessages((prev) => [...prev, userMessage]);
     setInputValue("");
 
-    // Correct format for n8n Chat Trigger with action parameter
+    // Correct format for n8n Chat Trigger - action goes in payload, not URL
     const payload = {
+      sessionId: sessionId,
       chatInput: message,
-      sessionId: sessionId
+      action: "sendMessage"
     };
 
-    // Add action=sendMessage to URL as query parameter
-    const urlWithAction = `${webhookUrl}?action=sendMessage`;
+    // Use the original webhook URL without query parameters
+    const urlToUse = webhookUrl;
 
     addDebugInfo(`POST payload: ${JSON.stringify(payload)}`);
-    addDebugInfo(`POST URL: ${urlWithAction}`);
+    addDebugInfo(`POST URL: ${urlToUse}`);
 
     try {
-      const res = await fetch(urlWithAction, {
+      const res = await fetch(urlToUse, {
         method: "POST",
         headers: { 
           "Content-Type": "application/json",
