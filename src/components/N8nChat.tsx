@@ -22,7 +22,14 @@ const N8nChat: React.FC<N8nChatProps> = ({
   position = "bottom-right",
 }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState<Message[]>(() => [
+    {
+      id: crypto.randomUUID(),
+      text: "Hey! Welcome to StreamlineFlo",
+      sender: "assistant",
+      timestamp: new Date(),
+    },
+  ]);
   const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
