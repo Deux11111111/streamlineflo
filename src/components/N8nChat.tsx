@@ -33,7 +33,6 @@ const N8nChat: React.FC<N8nChatProps> = ({
   const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
-  const [eventSource, setEventSource] = useState<EventSource | null>(null);
   const [debugInfo, setDebugInfo] = useState<string[]>([]);
 
   // persistent sessionId across chat
@@ -46,58 +45,11 @@ const N8nChat: React.FC<N8nChatProps> = ({
     console.log(`[N8nChat Debug] ${info}`);
   };
 
-  // auto scroll to bottom when messages change
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages]);
-
-  const startSSE = () => {
-    if (eventSource) {
-      addDebugInfo("SSE already connected");
-      return;
-    }
-
-    const sseUrl = `${webhookUrl.replace("/chat", "/chat/stream")}?sessionId=${encodeURIComponent(sessionId)}`;
-    addDebugInfo(`Starting SSE connection to: ${sseUrl}`);
-    
-    const es = new EventSource(sseUrl);
-
-    es.onopen = () => {
-      addDebugInfo("SSE connection opened");
-    };
-
-    es.onmessage = (event) => {
-      addDebugInfo(`SSE message received: ${event.data.substring(0, 100)}...`);
-      try {
-        const data = JSON.parse(event.data);
-        if (data.content) {
-          setMessages((prev) => [
-            ...prev,
-            {
-              id: crypto.randomUUID(),
-              text: data.content,
-              sender: "assistant",
-              timestamp: new Date(),
-            },
-          ]);
-        }
-      } catch (err) {
-        addDebugInfo(`Error parsing SSE message: ${err}`);
-        console.error("Error parsing SSE message:", err);
-      }
-    };
-
-    es.onerror = (err) => {
-      addDebugInfo(`SSE connection error: ${err}`);
-      console.error("SSE connection error:", err);
-      es.close();
-      setEventSource(null);
-    };
-
-    setEventSource(es);
-  };
 
   const sendMessage = async (message: string) => {
     if (!message.trim() || isLoading) return;
@@ -115,17 +67,20 @@ const N8nChat: React.FC<N8nChatProps> = ({
     setMessages((prev) => [...prev, userMessage]);
     setInputValue("");
 
-    // Try different payload formats for n8n Chat Trigger
+    // Correct format for n8n Chat Trigger with action parameter
     const payload = {
       chatInput: message,
       sessionId: sessionId
     };
 
+    // Add action=sendMessage to URL as query parameter
+    const urlWithAction = `${webhookUrl}?action=sendMessage`;
+
     addDebugInfo(`POST payload: ${JSON.stringify(payload)}`);
-    addDebugInfo(`POST URL: ${webhookUrl}`);
+    addDebugInfo(`POST URL: ${urlWithAction}`);
 
     try {
-      const res = await fetch(webhookUrl, {
+      const res = await fetch(urlWithAction, {
         method: "POST",
         headers: { 
           "Content-Type": "application/json",
@@ -145,28 +100,48 @@ const N8nChat: React.FC<N8nChatProps> = ({
       const responseData = await res.text();
       addDebugInfo(`Response data: ${responseData.substring(0, 200)}...`);
 
-      // Only start SSE after first POST succeeds
-      if (!eventSource) {
-        addDebugInfo("Starting SSE connection after successful POST");
-        startSSE();
-      }
-
-      // If the response contains a direct reply, show it immediately
+      // Parse and display the AI response
       try {
         const jsonResponse = JSON.parse(responseData);
-        if (jsonResponse.message || jsonResponse.response) {
+        
+        // n8n Chat Trigger typically returns response in 'output' or 'text' field
+        const aiResponse = jsonResponse.output || jsonResponse.text || jsonResponse.message || jsonResponse.response;
+        
+        if (aiResponse) {
           setMessages((prev) => [
             ...prev,
             {
               id: crypto.randomUUID(),
-              text: jsonResponse.message || jsonResponse.response,
+              text: aiResponse,
+              sender: "assistant",
+              timestamp: new Date(),
+            },
+          ]);
+        } else {
+          addDebugInfo(`No response text found in: ${JSON.stringify(jsonResponse)}`);
+          // Show the raw response if we can't find the expected field
+          setMessages((prev) => [
+            ...prev,
+            {
+              id: crypto.randomUUID(),
+              text: typeof jsonResponse === 'string' ? jsonResponse : JSON.stringify(jsonResponse),
               sender: "assistant",
               timestamp: new Date(),
             },
           ]);
         }
-      } catch (e) {
-        // Response might not be JSON, that's OK
+      } catch (parseError) {
+        addDebugInfo(`Failed to parse JSON response: ${parseError}`);
+        // If response is not JSON, display as-is
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: crypto.randomUUID(),
+            text: responseData,
+            sender: "assistant",
+            timestamp: new Date(),
+          },
+        ]);
       }
 
     } catch (error) {
