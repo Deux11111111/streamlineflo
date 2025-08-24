@@ -9,7 +9,7 @@ interface Message {
 }
 
 interface N8nChatProps {
-  webhookUrl: string; // your chat trigger URL
+  webhookUrl: string;
   title?: string;
   subtitle?: string;
   position?: "bottom-right" | "bottom-left";
@@ -34,10 +34,17 @@ const N8nChat: React.FC<N8nChatProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [eventSource, setEventSource] = useState<EventSource | null>(null);
+  const [debugInfo, setDebugInfo] = useState<string[]>([]);
 
   // persistent sessionId across chat
   const [sessionId] = useState(() => "chat_session_" + crypto.randomUUID());
   const positionClass = position === "bottom-left" ? "left-6" : "right-6";
+
+  // Debug logging function
+  const addDebugInfo = (info: string) => {
+    setDebugInfo(prev => [...prev.slice(-4), `${new Date().toLocaleTimeString()}: ${info}`]);
+    console.log(`[N8nChat Debug] ${info}`);
+  };
 
   // auto scroll to bottom when messages change
   useEffect(() => {
@@ -47,13 +54,22 @@ const N8nChat: React.FC<N8nChatProps> = ({
   }, [messages]);
 
   const startSSE = () => {
-    if (eventSource) return; // SSE already started
+    if (eventSource) {
+      addDebugInfo("SSE already connected");
+      return;
+    }
 
-    const es = new EventSource(
-      `${webhookUrl.replace("/chat", "/chat/stream")}?sessionId=${encodeURIComponent(sessionId)}`
-    );
+    const sseUrl = `${webhookUrl.replace("/chat", "/chat/stream")}?sessionId=${encodeURIComponent(sessionId)}`;
+    addDebugInfo(`Starting SSE connection to: ${sseUrl}`);
+    
+    const es = new EventSource(sseUrl);
+
+    es.onopen = () => {
+      addDebugInfo("SSE connection opened");
+    };
 
     es.onmessage = (event) => {
+      addDebugInfo(`SSE message received: ${event.data.substring(0, 100)}...`);
       try {
         const data = JSON.parse(event.data);
         if (data.content) {
@@ -68,11 +84,13 @@ const N8nChat: React.FC<N8nChatProps> = ({
           ]);
         }
       } catch (err) {
+        addDebugInfo(`Error parsing SSE message: ${err}`);
         console.error("Error parsing SSE message:", err);
       }
     };
 
     es.onerror = (err) => {
+      addDebugInfo(`SSE connection error: ${err}`);
       console.error("SSE connection error:", err);
       es.close();
       setEventSource(null);
@@ -85,6 +103,7 @@ const N8nChat: React.FC<N8nChatProps> = ({
     if (!message.trim() || isLoading) return;
 
     setIsLoading(true);
+    addDebugInfo(`Sending message: "${message}"`);
 
     const userMessage: Message = {
       id: crypto.randomUUID(),
@@ -96,24 +115,62 @@ const N8nChat: React.FC<N8nChatProps> = ({
     setMessages((prev) => [...prev, userMessage]);
     setInputValue("");
 
+    const payload = {
+      sessionId,
+      action: "sendMessage",
+      chatInput: message,
+    };
+
+    addDebugInfo(`POST payload: ${JSON.stringify(payload)}`);
+    addDebugInfo(`POST URL: ${webhookUrl}`);
+
     try {
       const res = await fetch(webhookUrl, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          sessionId,
-          action: "sendMessage",
-          chatInput: message,
-        }),
+        headers: { 
+          "Content-Type": "application/json",
+          "Accept": "application/json"
+        },
+        body: JSON.stringify(payload),
       });
 
+      addDebugInfo(`Response status: ${res.status} ${res.statusText}`);
+      
       if (!res.ok) {
-        throw new Error("Failed to send message");
+        const errorText = await res.text();
+        addDebugInfo(`Error response: ${errorText}`);
+        throw new Error(`HTTP ${res.status}: ${errorText}`);
       }
 
+      const responseData = await res.text();
+      addDebugInfo(`Response data: ${responseData.substring(0, 200)}...`);
+
       // Only start SSE after first POST succeeds
-      if (!eventSource) startSSE();
+      if (!eventSource) {
+        addDebugInfo("Starting SSE connection after successful POST");
+        startSSE();
+      }
+
+      // If the response contains a direct reply, show it immediately
+      try {
+        const jsonResponse = JSON.parse(responseData);
+        if (jsonResponse.message || jsonResponse.response) {
+          setMessages((prev) => [
+            ...prev,
+            {
+              id: crypto.randomUUID(),
+              text: jsonResponse.message || jsonResponse.response,
+              sender: "assistant",
+              timestamp: new Date(),
+            },
+          ]);
+        }
+      } catch (e) {
+        // Response might not be JSON, that's OK
+      }
+
     } catch (error) {
+      addDebugInfo(`Send message error: ${error}`);
       console.error("Send message error:", error);
       setMessages((prev) => [
         ...prev,
@@ -129,9 +186,19 @@ const N8nChat: React.FC<N8nChatProps> = ({
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = (e?: React.FormEvent | React.KeyboardEvent) => {
+    e?.preventDefault();
     sendMessage(inputValue);
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleSubmit(e);
+    }
+  };
+
+  const clearDebugInfo = () => {
+    setDebugInfo([]);
   };
 
   return (
@@ -153,7 +220,7 @@ const N8nChat: React.FC<N8nChatProps> = ({
           style={{
             background: "rgba(255,255,255,0.82)",
             borderColor: "rgba(2,6,23,0.06)",
-            boxShadow: "var(--chat-shadow)",
+            boxShadow: "0 10px 40px rgba(0,0,0,0.15)",
             backdropFilter: "blur(12px)",
             WebkitBackdropFilter: "blur(12px)",
           }}
@@ -166,15 +233,36 @@ const N8nChat: React.FC<N8nChatProps> = ({
             {subtitle && <p className="mt-1.5 mb-0 text-[12.5px] text-gray-600">{subtitle}</p>}
           </div>
 
+          {/* Debug Info Panel */}
+          {debugInfo.length > 0 && (
+            <div className="px-3 py-2 bg-gray-50 border-b">
+              <div className="flex justify-between items-center mb-1">
+                <span className="text-xs font-medium text-gray-600">Debug Info:</span>
+                <button 
+                  onClick={clearDebugInfo}
+                  className="text-xs text-gray-400 hover:text-gray-600"
+                >
+                  Clear
+                </button>
+              </div>
+              <div className="max-h-20 overflow-auto">
+                {debugInfo.map((info, index) => (
+                  <div key={index} className="text-xs text-gray-500 font-mono break-all">
+                    {info}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Chat Body */}
           <div className="h-80 overflow-hidden">
             <div ref={scrollRef} className="h-full overflow-auto px-3 py-3">
               {messages.map((message) => (
                 <div key={message.id} className={`flex my-2 ${message.sender === "user" ? "justify-end" : "justify-start"}`}>
                   <div
-                    className={`max-w-[80%] px-3 py-2.5 rounded-2xl text-[13px] leading-relaxed animate-enter ${message.sender === "user" ? "text-white" : "text-gray-700"}`}
+                    className={`max-w-[80%] px-3 py-2.5 rounded-2xl text-[13px] leading-relaxed ${message.sender === "user" ? "text-white bg-indigo-600" : "text-gray-700 bg-gray-100"}`}
                     style={{
-                      background: message.sender === "user" ? "hsl(var(--primary-color))" : "rgba(0,0,0,0.04)",
                       boxShadow: message.sender === "user" ? "0 8px 20px rgba(79,70,229,0.35)" : "none",
                     }}
                   >
@@ -186,24 +274,25 @@ const N8nChat: React.FC<N8nChatProps> = ({
           </div>
 
           {/* Footer / Input */}
-          <form onSubmit={handleSubmit} className="flex gap-2 border-t p-2.5 items-center">
+          <div className="flex gap-2 border-t p-2.5 items-center">
             <input
               type="text"
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
+              onKeyPress={handleKeyPress}
               placeholder="Type your message..."
-              className="flex-1 h-11 px-3.5 border rounded-full text-sm outline-none transition-all duration-200"
+              className="flex-1 h-11 px-3.5 border rounded-full text-sm outline-none transition-all duration-200 focus:border-indigo-400"
               disabled={isLoading}
             />
             <button
-              type="submit"
+              onClick={() => handleSubmit()}
               disabled={isLoading || !inputValue.trim()}
-              className="h-11 px-4 text-white border-0 rounded-full text-sm cursor-pointer inline-flex items-center gap-2 transition-all duration-200 hover:-translate-y-0.5 disabled:opacity-60 disabled:cursor-not-allowed disabled:transform-none"
+              className="h-11 px-4 text-white border-0 rounded-full text-sm cursor-pointer inline-flex items-center gap-2 transition-all duration-200 hover:-translate-y-0.5 disabled:opacity-60 disabled:cursor-not-allowed disabled:transform-none bg-indigo-600 hover:bg-indigo-700"
             >
               {isLoading ? <div className="w-4 h-4 border-2 border-white/35 border-t-white rounded-full animate-spin" /> : <Send className="w-[18px] h-[18px]" />}
               <span>Send</span>
             </button>
-          </form>
+          </div>
         </div>
       )}
     </div>
