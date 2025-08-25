@@ -1,222 +1,219 @@
-// src/components/N8nChat.tsx
-import React, { useState, useRef, useEffect } from "react";
-import { Send, MessageCircle, X } from "lucide-react";
+// PremiumChatWidget.tsx
+import React, { useState, useRef, useEffect } from 'react';
+import { MessageCircle, Send, X, Minimize2, Sparkles, Bot, User } from 'lucide-react';
+
+const cn = (...inputs: any[]) => {
+  const clsx = require('clsx');
+  const { twMerge } = require('tailwind-merge');
+  return twMerge(clsx(inputs));
+};
 
 interface Message {
   id: string;
   text: string;
-  sender: "user" | "assistant";
+  sender: 'user' | 'assistant';
   timestamp: Date;
 }
 
-interface N8nChatProps {
+interface PremiumChatProps {
   webhookUrl: string;
   title?: string;
   subtitle?: string;
-  position?: "bottom-right" | "bottom-left";
+  position?: 'bottom-right' | 'bottom-left';
 }
 
-const N8nChat: React.FC<N8nChatProps> = ({
+const PremiumChat: React.FC<PremiumChatProps> = ({
   webhookUrl,
   title = "AI Assistant",
-  subtitle = "Your smart workflow helper",
+  subtitle = "How can I help you today?",
   position = "bottom-right",
 }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: crypto.randomUUID(),
-      text: "👋 Hi there! How can I help you today?",
-      sender: "assistant",
-      timestamp: new Date(),
-    },
-  ]);
-  const [inputValue, setInputValue] = useState("");
+  const [isMinimized, setIsMinimized] = useState(false);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const scrollRef = useRef<HTMLDivElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // session id persists per chat window
-  const [sessionId] = useState(() => crypto.randomUUID());
-  const positionClass = position === "bottom-left" ? "left-6" : "right-6";
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
 
-  // auto scroll on new message
   useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-    }
-  }, [messages, isLoading]);
+    scrollToBottom();
+  }, [messages]);
 
-  const sendMessage = async (message: string) => {
-    if (!message.trim() || isLoading) return;
+  const sendMessage = async (text: string) => {
+    if (!text.trim()) return;
 
     const userMessage: Message = {
-      id: crypto.randomUUID(),
-      text: message,
-      sender: "user",
+      id: Date.now().toString(),
+      text,
+      sender: 'user',
       timestamp: new Date(),
     };
     setMessages((prev) => [...prev, userMessage]);
-    setInputValue("");
+    setInputValue('');
     setIsLoading(true);
 
-    const payload = [
-      {
-        sessionId,
-        action: "sendMessage",
-        chatInput: message,
-      },
-    ];
-
     try {
-      const res = await fetch(webhookUrl, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+      const response = await fetch(webhookUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: text }),
       });
 
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      if (response.ok) {
+        const data = await response.json();
+        const assistantText = data.response || data.message || "I'm here to help!";
 
-      const responseData = await res.text();
-
-      try {
-        const json = JSON.parse(responseData);
-        const aiResponse =
-          json.output || json.text || json.message || json.response;
-
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: crypto.randomUUID(),
-            text:
-              aiResponse ||
-              (typeof json === "string" ? json : JSON.stringify(json)),
-            sender: "assistant",
-            timestamp: new Date(),
-          },
-        ]);
-      } catch {
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: crypto.randomUUID(),
-            text: responseData,
-            sender: "assistant",
-            timestamp: new Date(),
-          },
-        ]);
+        const assistantMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          text: assistantText,
+          sender: 'assistant',
+          timestamp: new Date(),
+        };
+        setMessages((prev) => [...prev, assistantMessage]);
+      } else {
+        throw new Error('Webhook failed');
       }
     } catch (error) {
-      console.error("Send message error:", error);
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: crypto.randomUUID(),
-          text: "⚠️ Sorry, I’m having trouble right now. Try again in a moment.",
-          sender: "assistant",
-          timestamp: new Date(),
-        },
-      ]);
+      console.error('Error sending message:', error);
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        text: "⚠️ Sorry, I couldn’t connect to the server. Please try again later.",
+        sender: 'assistant',
+        timestamp: new Date(),
+      };
+      setMessages((prev) => [...prev, errorMessage]);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleSubmit = (e?: React.FormEvent) => {
-    e?.preventDefault();
-    if (inputValue.trim()) sendMessage(inputValue);
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    sendMessage(inputValue);
   };
 
+  const positionClasses =
+    position === 'bottom-right' ? 'right-4 bottom-4' : 'left-4 bottom-4';
+
   return (
-    <div
-      className={`fixed z-[2147483646] bottom-6 ${positionClass} font-sans text-gray-900`}
-    >
-      {/* Floating Toggle */}
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="w-14 h-14 rounded-full shadow-lg cursor-pointer relative text-white bg-gradient-to-br from-indigo-500 to-purple-600 hover:opacity-90 inline-flex items-center justify-center transition-all duration-300"
-      >
-        {isOpen ? <X className="w-6 h-6" /> : <MessageCircle className="w-6 h-6" />}
-      </button>
-
-      {/* Chat Panel */}
-      {isOpen && (
-        <div
-          className="mt-3 w-[min(90vw,400px)] rounded-2xl overflow-hidden border animate-enter"
-          style={{
-            background: "rgba(255,255,255,0.9)",
-            borderColor: "rgba(0,0,0,0.08)",
-            boxShadow: "0 12px 40px rgba(0,0,0,0.15)",
-            backdropFilter: "blur(12px)",
-          }}
+    <div className={cn("fixed z-50", positionClasses)}>
+      {!isOpen ? (
+        <button
+          onClick={() => setIsOpen(true)}
+          className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white p-4 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center group"
         >
+          <MessageCircle className="h-6 w-6 group-hover:scale-110 transition-transform duration-300" />
+        </button>
+      ) : (
+        <div className="w-96 h-[32rem] bg-white rounded-2xl shadow-2xl flex flex-col overflow-hidden border border-gray-200 animate-in slide-in-from-bottom-4 duration-300">
           {/* Header */}
-          <div className="px-4 py-4 border-b bg-gradient-to-r from-indigo-500 to-purple-600 text-white">
-            <h2 className="text-base font-semibold">{title}</h2>
-            {subtitle && <p className="text-xs opacity-80">{subtitle}</p>}
-          </div>
-
-          {/* Messages */}
-          <div className="h-96 overflow-hidden">
-            <div ref={scrollRef} className="h-full overflow-auto px-4 py-3 space-y-3">
-              {messages.map((msg) => (
-                <div
-                  key={msg.id}
-                  className={`flex ${msg.sender === "user" ? "justify-end" : "justify-start"}`}
-                >
-                  <div
-                    className={`max-w-[80%] px-4 py-2.5 rounded-2xl text-sm leading-relaxed ${
-                      msg.sender === "user"
-                        ? "bg-gradient-to-br from-indigo-500 to-purple-600 text-white shadow-md"
-                        : "bg-gray-100 text-gray-800"
-                    }`}
-                  >
-                    {msg.text}
-                  </div>
-                </div>
-              ))}
-
-              {/* Typing animation */}
-              {isLoading && (
-                <div className="flex justify-start">
-                  <div className="bg-gray-200 px-4 py-2.5 rounded-2xl text-sm text-gray-600 flex space-x-2">
-                    <span className="w-2 h-2 bg-gray-500 rounded-full animate-bounce"></span>
-                    <span className="w-2 h-2 bg-gray-500 rounded-full animate-bounce delay-150"></span>
-                    <span className="w-2 h-2 bg-gray-500 rounded-full animate-bounce delay-300"></span>
-                  </div>
-                </div>
-              )}
+          <div className="bg-gradient-to-r from-purple-600 to-indigo-600 p-4 flex justify-between items-center">
+            <div className="flex items-center space-x-3">
+              <div className="bg-white/20 p-2 rounded-lg">
+                <Sparkles className="h-5 w-5 text-white" />
+              </div>
+              <div>
+                <h3 className="text-white font-semibold">{title}</h3>
+                <p className="text-white/80 text-sm">{subtitle}</p>
+              </div>
+            </div>
+            <div className="flex space-x-2">
+              <button
+                onClick={() => setIsMinimized(!isMinimized)}
+                className="text-white/80 hover:text-white"
+              >
+                <Minimize2 className="h-5 w-5" />
+              </button>
+              <button
+                onClick={() => setIsOpen(false)}
+                className="text-white/80 hover:text-white"
+              >
+                <X className="h-5 w-5" />
+              </button>
             </div>
           </div>
 
-          {/* Footer */}
-          <form
-            onSubmit={handleSubmit}
-            className="flex gap-2 border-t p-3 items-center bg-white"
-          >
-            <input
-              type="text"
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              placeholder="Type your message..."
-              className="flex-1 h-11 px-4 border rounded-full text-sm outline-none transition-all focus:border-indigo-400"
-              disabled={isLoading}
-            />
-            <button
-              type="submit"
-              disabled={isLoading || !inputValue.trim()}
-              className="h-11 px-5 text-white rounded-full text-sm font-medium bg-gradient-to-br from-indigo-500 to-purple-600 hover:opacity-90 transition disabled:opacity-50"
-            >
-              {isLoading ? (
-                <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin mx-auto" />
-              ) : (
-                <Send className="w-5 h-5" />
-              )}
-            </button>
-          </form>
+          {/* Messages */}
+          {!isMinimized && (
+            <>
+              <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50/50">
+                {messages.map((message) => (
+                  <div
+                    key={message.id}
+                    className={cn(
+                      "flex items-start space-x-2",
+                      message.sender === 'user' ? 'justify-end' : 'justify-start'
+                    )}
+                  >
+                    {message.sender === 'assistant' && (
+                      <div className="bg-gradient-to-br from-purple-600 to-indigo-600 p-2 rounded-lg">
+                        <Bot className="h-4 w-4 text-white" />
+                      </div>
+                    )}
+                    <div
+                      className={cn(
+                        "max-w-[70%] rounded-2xl px-4 py-2",
+                        message.sender === 'user'
+                          ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white'
+                          : 'bg-white border border-gray-200 shadow-sm'
+                      )}
+                    >
+                      <p className="text-sm">{message.text}</p>
+                      <span className="text-[10px] text-gray-400 block mt-1">
+                        {message.timestamp.toLocaleTimeString([], {
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}
+                      </span>
+                    </div>
+                    {message.sender === 'user' && (
+                      <div className="bg-gradient-to-br from-purple-600 to-indigo-600 p-2 rounded-lg">
+                        <User className="h-4 w-4 text-white" />
+                      </div>
+                    )}
+                  </div>
+                ))}
+                {isLoading && (
+                  <div className="flex items-center space-x-2 text-gray-500">
+                    <Bot className="h-4 w-4" />
+                    <div className="flex space-x-1">
+                      <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></span>
+                      <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-150"></span>
+                      <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-300"></span>
+                    </div>
+                  </div>
+                )}
+                <div ref={messagesEndRef} />
+              </div>
+
+              {/* Input */}
+              <form onSubmit={handleSubmit} className="p-4 border-t border-gray-200 bg-white">
+                <div className="flex space-x-2">
+                  <input
+                    type="text"
+                    value={inputValue}
+                    onChange={(e) => setInputValue(e.target.value)}
+                    placeholder="Type your message..."
+                    className="flex-1 rounded-full border border-gray-300 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  />
+                  <button
+                    type="submit"
+                    className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white p-2 rounded-full hover:shadow-md transition-all"
+                  >
+                    <Send className="h-5 w-5" />
+                  </button>
+                </div>
+              </form>
+            </>
+          )}
         </div>
       )}
     </div>
   );
 };
 
-export default N8nChat;
+export default PremiumChat;
