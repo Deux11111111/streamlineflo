@@ -1,4 +1,4 @@
-// PremiumChatWidget.tsx
+// N8nChat.tsx
 import React, { useState, useRef, useEffect } from "react";
 import { Send, MessageCircle, X, Bot, User, Sparkles, Minimize2 } from "lucide-react";
 
@@ -9,14 +9,14 @@ interface Message {
   timestamp: Date;
 }
 
-interface PremiumChatProps {
+interface N8nChatProps {
   webhookUrl: string;
   title?: string;
   subtitle?: string;
   position?: "bottom-right" | "bottom-left";
 }
 
-const PremiumChatWidget: React.FC<PremiumChatProps> = ({
+const N8nChat: React.FC<N8nChatProps> = ({
   webhookUrl,
   title = "AI Assistant",
   subtitle = "How can I help you today?",
@@ -258,4 +258,4 @@ const PremiumChatWidget: React.FC<PremiumChatProps> = ({
   );
 };
 
-export default PremiumChatWidget;
+export default N8nChat;
