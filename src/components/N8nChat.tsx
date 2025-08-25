@@ -1,3 +1,4 @@
+// src/components/N8nChat.tsx
 import React, { useState, useRef, useEffect } from "react";
 import { Send, MessageCircle, X } from "lucide-react";
 
@@ -18,35 +19,35 @@ interface N8nChatProps {
 const N8nChat: React.FC<N8nChatProps> = ({
   webhookUrl,
   title = "AI Assistant",
-  subtitle = "",
+  subtitle = "Your smart workflow helper",
   position = "bottom-right",
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
     {
       id: crypto.randomUUID(),
-      text: "Hey! Welcome to StreamlineFlo 👋",
+      text: "👋 Hi there! How can I help you today?",
       sender: "assistant",
       timestamp: new Date(),
     },
   ]);
   const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [isTyping, setIsTyping] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  const [sessionId] = useState(() => "chat_session_" + crypto.randomUUID());
+  // session id persists per chat window
+  const [sessionId] = useState(() => crypto.randomUUID());
   const positionClass = position === "bottom-left" ? "left-6" : "right-6";
 
+  // auto scroll on new message
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
-  }, [messages, isTyping]);
+  }, [messages, isLoading]);
 
   const sendMessage = async (message: string) => {
     if (!message.trim() || isLoading) return;
-    setIsLoading(true);
 
     const userMessage: Message = {
       id: crypto.randomUUID(),
@@ -56,14 +57,13 @@ const N8nChat: React.FC<N8nChatProps> = ({
     };
     setMessages((prev) => [...prev, userMessage]);
     setInputValue("");
-
-    setIsTyping(true);
+    setIsLoading(true);
 
     const payload = [
       {
-        sessionId: sessionId,
-        chatInput: message,
+        sessionId,
         action: "sendMessage",
+        chatInput: message,
       },
     ];
 
@@ -74,37 +74,26 @@ const N8nChat: React.FC<N8nChatProps> = ({
         body: JSON.stringify(payload),
       });
 
-      if (!res.ok) {
-        throw new Error(`HTTP ${res.status}`);
-      }
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
       const responseData = await res.text();
-      try {
-        const jsonResponse = JSON.parse(responseData);
-        const aiResponse =
-          jsonResponse.output || jsonResponse.text || jsonResponse.message || jsonResponse.response;
 
-        if (aiResponse) {
-          setMessages((prev) => [
-            ...prev,
-            {
-              id: crypto.randomUUID(),
-              text: aiResponse,
-              sender: "assistant",
-              timestamp: new Date(),
-            },
-          ]);
-        } else {
-          setMessages((prev) => [
-            ...prev,
-            {
-              id: crypto.randomUUID(),
-              text: typeof jsonResponse === "string" ? jsonResponse : JSON.stringify(jsonResponse),
-              sender: "assistant",
-              timestamp: new Date(),
-            },
-          ]);
-        }
+      try {
+        const json = JSON.parse(responseData);
+        const aiResponse =
+          json.output || json.text || json.message || json.response;
+
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: crypto.randomUUID(),
+            text:
+              aiResponse ||
+              (typeof json === "string" ? json : JSON.stringify(json)),
+            sender: "assistant",
+            timestamp: new Date(),
+          },
+        ]);
       } catch {
         setMessages((prev) => [
           ...prev,
@@ -122,34 +111,29 @@ const N8nChat: React.FC<N8nChatProps> = ({
         ...prev,
         {
           id: crypto.randomUUID(),
-          text: "Sorry, I'm having trouble connecting right now. Please try again.",
+          text: "⚠️ Sorry, I’m having trouble right now. Try again in a moment.",
           sender: "assistant",
           timestamp: new Date(),
         },
       ]);
     } finally {
-      setIsTyping(false);
       setIsLoading(false);
     }
   };
 
-  const handleSubmit = (e?: React.FormEvent | React.KeyboardEvent) => {
+  const handleSubmit = (e?: React.FormEvent) => {
     e?.preventDefault();
-    sendMessage(inputValue);
-  };
-
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter") handleSubmit(e);
+    if (inputValue.trim()) sendMessage(inputValue);
   };
 
   return (
-    <div className={`fixed z-[2147483646] bottom-6 ${positionClass} font-sans`}>
-      {/* Chat Toggle Button */}
+    <div
+      className={`fixed z-[2147483646] bottom-6 ${positionClass} font-sans text-gray-900`}
+    >
+      {/* Floating Toggle */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="w-14 h-14 rounded-full border-0 cursor-pointer relative text-white bg-gradient-to-br from-indigo-600 to-purple-600 hover:scale-110 transition-transform duration-200 shadow-xl flex items-center justify-center"
-        aria-expanded={isOpen}
-        title={isOpen ? "Close chat" : "Open chat"}
+        className="w-14 h-14 rounded-full shadow-lg cursor-pointer relative text-white bg-gradient-to-br from-indigo-500 to-purple-600 hover:opacity-90 inline-flex items-center justify-center transition-all duration-300"
       >
         {isOpen ? <X className="w-6 h-6" /> : <MessageCircle className="w-6 h-6" />}
       </button>
@@ -157,71 +141,78 @@ const N8nChat: React.FC<N8nChatProps> = ({
       {/* Chat Panel */}
       {isOpen && (
         <div
-          className="mt-3 w-[min(90vw,400px)] rounded-[20px] overflow-hidden border border-gray-200 shadow-2xl animate-enter bg-white/95 backdrop-blur-lg"
-          role="dialog"
-          aria-label="Chat widget"
+          className="mt-3 w-[min(90vw,400px)] rounded-2xl overflow-hidden border animate-enter"
+          style={{
+            background: "rgba(255,255,255,0.9)",
+            borderColor: "rgba(0,0,0,0.08)",
+            boxShadow: "0 12px 40px rgba(0,0,0,0.15)",
+            backdropFilter: "blur(12px)",
+          }}
         >
           {/* Header */}
-          <div className="px-5 py-4 border-b border-gray-300">
-            <h2 className="m-0 text-lg font-bold text-gray-900">{title}</h2>
-            {subtitle && <p className="mt-1 text-sm text-gray-500">{subtitle}</p>}
+          <div className="px-4 py-4 border-b bg-gradient-to-r from-indigo-500 to-purple-600 text-white">
+            <h2 className="text-base font-semibold">{title}</h2>
+            {subtitle && <p className="text-xs opacity-80">{subtitle}</p>}
           </div>
 
-          {/* Chat Body */}
+          {/* Messages */}
           <div className="h-96 overflow-hidden">
-            <div ref={scrollRef} className="h-full overflow-auto px-4 py-4 space-y-3">
+            <div ref={scrollRef} className="h-full overflow-auto px-4 py-3 space-y-3">
               {messages.map((msg) => (
                 <div
                   key={msg.id}
                   className={`flex ${msg.sender === "user" ? "justify-end" : "justify-start"}`}
                 >
                   <div
-                    className={`max-w-[75%] px-4 py-2.5 rounded-3xl text-sm ${
+                    className={`max-w-[80%] px-4 py-2.5 rounded-2xl text-sm leading-relaxed ${
                       msg.sender === "user"
-                        ? "text-white bg-gradient-to-r from-indigo-500 to-purple-500 shadow-lg"
-                        : "text-gray-800 bg-gray-100"
+                        ? "bg-gradient-to-br from-indigo-500 to-purple-600 text-white shadow-md"
+                        : "bg-gray-100 text-gray-800"
                     }`}
                   >
                     {msg.text}
                   </div>
                 </div>
               ))}
-              {isTyping && (
+
+              {/* Typing animation */}
+              {isLoading && (
                 <div className="flex justify-start">
-                  <div className="bg-gray-100 text-gray-800 max-w-[25%] px-4 py-2.5 rounded-3xl flex items-center space-x-1 animate-pulse">
-                    <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-75"></span>
-                    <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-150"></span>
-                    <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-300"></span>
+                  <div className="bg-gray-200 px-4 py-2.5 rounded-2xl text-sm text-gray-600 flex space-x-2">
+                    <span className="w-2 h-2 bg-gray-500 rounded-full animate-bounce"></span>
+                    <span className="w-2 h-2 bg-gray-500 rounded-full animate-bounce delay-150"></span>
+                    <span className="w-2 h-2 bg-gray-500 rounded-full animate-bounce delay-300"></span>
                   </div>
                 </div>
               )}
             </div>
           </div>
 
-          {/* Footer / Input */}
-          <div className="flex gap-3 border-t border-gray-300 p-3 items-center">
+          {/* Footer */}
+          <form
+            onSubmit={handleSubmit}
+            className="flex gap-2 border-t p-3 items-center bg-white"
+          >
             <input
               type="text"
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
-              onKeyPress={handleKeyPress}
               placeholder="Type your message..."
-              className="flex-1 h-12 px-4 border rounded-full text-sm outline-none focus:ring-2 focus:ring-indigo-500 transition"
+              className="flex-1 h-11 px-4 border rounded-full text-sm outline-none transition-all focus:border-indigo-400"
               disabled={isLoading}
             />
             <button
-              onClick={() => handleSubmit()}
+              type="submit"
               disabled={isLoading || !inputValue.trim()}
-              className="h-12 px-5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-medium rounded-full shadow-lg hover:scale-105 transition-transform disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              className="h-11 px-5 text-white rounded-full text-sm font-medium bg-gradient-to-br from-indigo-500 to-purple-600 hover:opacity-90 transition disabled:opacity-50"
             >
               {isLoading ? (
-                <div className="w-5 h-5 border-2 border-white/50 border-t-white rounded-full animate-spin" />
+                <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin mx-auto" />
               ) : (
                 <Send className="w-5 h-5" />
               )}
-              Send
             </button>
-          </div>
+          </form>
         </div>
       )}
     </div>
