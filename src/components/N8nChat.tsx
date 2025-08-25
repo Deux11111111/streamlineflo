@@ -34,11 +34,11 @@ const N8nChat: React.FC<N8nChatProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  // persistent sessionId across chat
-  const [sessionId] = useState(() => "chat_session_" + crypto.randomUUID());
+  // Persistent sessionId across chat
+  const [sessionId] = useState(() => crypto.randomUUID());
   const positionClass = position === "bottom-left" ? "left-6" : "right-6";
 
-  // auto scroll to bottom when messages change
+  // Auto scroll to bottom when messages change
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
@@ -60,59 +60,49 @@ const N8nChat: React.FC<N8nChatProps> = ({
     setMessages((prev) => [...prev, userMessage]);
     setInputValue("");
 
-    // Send as array with one object including action (n8n format)
-    const payload = [{
+    // Send exactly what Chat Trigger expects
+    const payload = {
       sessionId: sessionId,
+      action: "sendMessage",
       chatInput: message,
-      action: "sendMessage"
-    }];
+    };
 
     try {
       const res = await fetch(webhookUrl, {
         method: "POST",
-        headers: { 
-          "Content-Type": "application/json"
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
-      
+
       if (!res.ok) {
         throw new Error(`HTTP ${res.status}`);
       }
 
       const responseData = await res.text();
 
-      // Parse and display the AI response
+      // Try parse JSON, otherwise fallback to raw string
       try {
         const jsonResponse = JSON.parse(responseData);
-        
-        // n8n Chat Trigger typically returns response in 'output' or 'text' field
-        const aiResponse = jsonResponse.output || jsonResponse.text || jsonResponse.message || jsonResponse.response;
-        
-        if (aiResponse) {
-          setMessages((prev) => [
-            ...prev,
-            {
-              id: crypto.randomUUID(),
-              text: aiResponse,
-              sender: "assistant",
-              timestamp: new Date(),
-            },
-          ]);
-        } else {
-          // Show the raw response if we can't find the expected field
-          setMessages((prev) => [
-            ...prev,
-            {
-              id: crypto.randomUUID(),
-              text: typeof jsonResponse === 'string' ? jsonResponse : JSON.stringify(jsonResponse),
-              sender: "assistant",
-              timestamp: new Date(),
-            },
-          ]);
-        }
-      } catch (parseError) {
-        // If response is not JSON, display as-is
+        const aiResponse =
+          jsonResponse.output ||
+          jsonResponse.text ||
+          jsonResponse.message ||
+          jsonResponse.response;
+
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: crypto.randomUUID(),
+            text: aiResponse
+              ? aiResponse
+              : typeof jsonResponse === "string"
+              ? jsonResponse
+              : JSON.stringify(jsonResponse),
+            sender: "assistant",
+            timestamp: new Date(),
+          },
+        ]);
+      } catch {
         setMessages((prev) => [
           ...prev,
           {
@@ -123,7 +113,6 @@ const N8nChat: React.FC<N8nChatProps> = ({
           },
         ]);
       }
-
     } catch (error) {
       console.error("Send message error:", error);
       setMessages((prev) => [
@@ -146,13 +135,15 @@ const N8nChat: React.FC<N8nChatProps> = ({
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
+    if (e.key === "Enter") {
       handleSubmit(e);
     }
   };
 
   return (
-    <div className={`fixed z-[2147483646] bottom-6 ${positionClass} font-sans text-gray-900`}>
+    <div
+      className={`fixed z-[2147483646] bottom-6 ${positionClass} font-sans text-gray-900`}
+    >
       {/* Chat Toggle Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
@@ -160,7 +151,11 @@ const N8nChat: React.FC<N8nChatProps> = ({
         aria-expanded={isOpen}
         title={isOpen ? "Close chat" : "Open chat"}
       >
-        {isOpen ? <X className="w-5 h-5" /> : <MessageCircle className="w-5 h-5" />}
+        {isOpen ? (
+          <X className="w-5 h-5" />
+        ) : (
+          <MessageCircle className="w-5 h-5" />
+        )}
       </button>
 
       {/* Chat Panel */}
@@ -179,19 +174,39 @@ const N8nChat: React.FC<N8nChatProps> = ({
         >
           {/* Header */}
           <div className="px-4 py-3.5 border-b">
-            <h2 className="m-0 text-[15px] font-semibold leading-tight tracking-wide text-gray-900">{title}</h2>
-            {subtitle && <p className="mt-1.5 mb-0 text-[12.5px] text-gray-600">{subtitle}</p>}
+            <h2 className="m-0 text-[15px] font-semibold leading-tight tracking-wide text-gray-900">
+              {title}
+            </h2>
+            {subtitle && (
+              <p className="mt-1.5 mb-0 text-[12.5px] text-gray-600">
+                {subtitle}
+              </p>
+            )}
           </div>
 
           {/* Chat Body */}
           <div className="h-80 overflow-hidden">
             <div ref={scrollRef} className="h-full overflow-auto px-3 py-3">
               {messages.map((message) => (
-                <div key={message.id} className={`flex my-2 ${message.sender === "user" ? "justify-end" : "justify-start"}`}>
+                <div
+                  key={message.id}
+                  className={`flex my-2 ${
+                    message.sender === "user"
+                      ? "justify-end"
+                      : "justify-start"
+                  }`}
+                >
                   <div
-                    className={`max-w-[80%] px-3 py-2.5 rounded-2xl text-[13px] leading-relaxed ${message.sender === "user" ? "text-white bg-indigo-600" : "text-gray-700 bg-gray-100"}`}
+                    className={`max-w-[80%] px-3 py-2.5 rounded-2xl text-[13px] leading-relaxed ${
+                      message.sender === "user"
+                        ? "text-white bg-indigo-600"
+                        : "text-gray-700 bg-gray-100"
+                    }`}
                     style={{
-                      boxShadow: message.sender === "user" ? "0 8px 20px rgba(79,70,229,0.35)" : "none",
+                      boxShadow:
+                        message.sender === "user"
+                          ? "0 8px 20px rgba(79,70,229,0.35)"
+                          : "none",
                     }}
                   >
                     {message.text}
@@ -217,7 +232,11 @@ const N8nChat: React.FC<N8nChatProps> = ({
               disabled={isLoading || !inputValue.trim()}
               className="h-11 px-4 text-white border-0 rounded-full text-sm cursor-pointer inline-flex items-center gap-2 transition-all duration-200 hover:-translate-y-0.5 disabled:opacity-60 disabled:cursor-not-allowed disabled:transform-none bg-indigo-600 hover:bg-indigo-700"
             >
-              {isLoading ? <div className="w-4 h-4 border-2 border-white/35 border-t-white rounded-full animate-spin" /> : <Send className="w-[18px] h-[18px]" />}
+              {isLoading ? (
+                <div className="w-4 h-4 border-2 border-white/35 border-t-white rounded-full animate-spin" />
+              ) : (
+                <Send className="w-[18px] h-[18px]" />
+              )}
               <span>Send</span>
             </button>
           </div>
