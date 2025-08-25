@@ -9,14 +9,14 @@ interface Message {
 }
 
 interface N8nChatProps {
-  webhookUrl: string;
+  webhookUrl: string; // must always be provided
   title?: string;
   subtitle?: string;
   position?: "bottom-right" | "bottom-left";
 }
 
 const N8nChat: React.FC<N8nChatProps> = ({
-  webhookUrl = "https://streamline1.app.n8n.cloud/webhook/c803253c-f26b-4a80-83a5-53fad70dbdb6/chat",
+  webhookUrl,
   title = "AI Assistant",
   subtitle = "",
   position = "bottom-right",
@@ -34,11 +34,11 @@ const N8nChat: React.FC<N8nChatProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  // Persistent sessionId across chat
+  // persistent sessionId across chat
   const [sessionId] = useState(() => crypto.randomUUID());
   const positionClass = position === "bottom-left" ? "left-6" : "right-6";
 
-  // Auto scroll to bottom when messages change
+  // auto scroll to bottom when messages change
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
@@ -60,7 +60,7 @@ const N8nChat: React.FC<N8nChatProps> = ({
     setMessages((prev) => [...prev, userMessage]);
     setInputValue("");
 
-    // Send exactly what Chat Trigger expects
+    // Send in n8n's expected format
     const payload = {
       sessionId: sessionId,
       action: "sendMessage",
@@ -74,13 +74,10 @@ const N8nChat: React.FC<N8nChatProps> = ({
         body: JSON.stringify(payload),
       });
 
-      if (!res.ok) {
-        throw new Error(`HTTP ${res.status}`);
-      }
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
       const responseData = await res.text();
 
-      // Try parse JSON, otherwise fallback to raw string
       try {
         const jsonResponse = JSON.parse(responseData);
         const aiResponse =
@@ -135,9 +132,7 @@ const N8nChat: React.FC<N8nChatProps> = ({
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter") {
-      handleSubmit(e);
-    }
+    if (e.key === "Enter") handleSubmit(e);
   };
 
   return (
