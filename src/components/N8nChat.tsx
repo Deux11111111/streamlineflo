@@ -1,17 +1,11 @@
 // PremiumChatWidget.tsx
-import React, { useState, useRef, useEffect } from 'react';
-import { MessageCircle, Send, X, Minimize2, Sparkles, Bot, User } from 'lucide-react';
-
-const cn = (...inputs: any[]) => {
-  const clsx = require('clsx');
-  const { twMerge } = require('tailwind-merge');
-  return twMerge(clsx(inputs));
-};
+import React, { useState, useRef, useEffect } from "react";
+import { Send, MessageCircle, X, Bot, User, Sparkles, Minimize2 } from "lucide-react";
 
 interface Message {
   id: string;
   text: string;
-  sender: 'user' | 'assistant';
+  sender: "user" | "assistant";
   timestamp: Date;
 }
 
@@ -19,10 +13,10 @@ interface PremiumChatProps {
   webhookUrl: string;
   title?: string;
   subtitle?: string;
-  position?: 'bottom-right' | 'bottom-left';
+  position?: "bottom-right" | "bottom-left";
 }
 
-const PremiumChat: React.FC<PremiumChatProps> = ({
+const PremiumChatWidget: React.FC<PremiumChatProps> = ({
   webhookUrl,
   title = "AI Assistant",
   subtitle = "How can I help you today?",
@@ -30,184 +24,232 @@ const PremiumChat: React.FC<PremiumChatProps> = ({
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [inputValue, setInputValue] = useState('');
+  const [messages, setMessages] = useState<Message[]>([
+    {
+      id: crypto.randomUUID(),
+      text: "Hey! Welcome to StreamlineFlo",
+      sender: "assistant",
+      timestamp: new Date(),
+    },
+  ]);
+  const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
+  const [sessionId] = useState(() => crypto.randomUUID());
+  const positionClass = position === "bottom-left" ? "left-6" : "right-6";
 
   useEffect(() => {
-    scrollToBottom();
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
   }, [messages]);
 
-  const sendMessage = async (text: string) => {
-    if (!text.trim()) return;
+  const sendMessage = async (message: string) => {
+    if (!message.trim() || isLoading) return;
+    setIsLoading(true);
 
     const userMessage: Message = {
-      id: Date.now().toString(),
-      text,
-      sender: 'user',
+      id: crypto.randomUUID(),
+      text: message,
+      sender: "user",
       timestamp: new Date(),
     };
     setMessages((prev) => [...prev, userMessage]);
-    setInputValue('');
-    setIsLoading(true);
+    setInputValue("");
+
+    const payload = {
+      sessionId,
+      action: "sendMessage",
+      chatInput: message,
+    };
 
     try {
-      const response = await fetch(webhookUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: text }),
+      const res = await fetch(webhookUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        const assistantText = data.response || data.message || "I'm here to help!";
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const responseData = await res.text();
 
-        const assistantMessage: Message = {
-          id: (Date.now() + 1).toString(),
-          text: assistantText,
-          sender: 'assistant',
-          timestamp: new Date(),
-        };
-        setMessages((prev) => [...prev, assistantMessage]);
-      } else {
-        throw new Error('Webhook failed');
+      try {
+        const jsonResponse = JSON.parse(responseData);
+        const aiResponse =
+          jsonResponse.output ||
+          jsonResponse.text ||
+          jsonResponse.message ||
+          jsonResponse.response;
+
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: crypto.randomUUID(),
+            text: aiResponse
+              ? aiResponse
+              : typeof jsonResponse === "string"
+              ? jsonResponse
+              : JSON.stringify(jsonResponse),
+            sender: "assistant",
+            timestamp: new Date(),
+          },
+        ]);
+      } catch {
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: crypto.randomUUID(),
+            text: responseData,
+            sender: "assistant",
+            timestamp: new Date(),
+          },
+        ]);
       }
     } catch (error) {
-      console.error('Error sending message:', error);
-      const errorMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        text: "⚠️ Sorry, I couldn’t connect to the server. Please try again later.",
-        sender: 'assistant',
-        timestamp: new Date(),
-      };
-      setMessages((prev) => [...prev, errorMessage]);
+      console.error("Send message error:", error);
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: crypto.randomUUID(),
+          text: "Sorry, I'm having trouble connecting right now. Please try again.",
+          sender: "assistant",
+          timestamp: new Date(),
+        },
+      ]);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = (e?: React.FormEvent | React.KeyboardEvent) => {
+    e?.preventDefault();
     sendMessage(inputValue);
   };
 
-  const positionClasses =
-    position === 'bottom-right' ? 'right-4 bottom-4' : 'left-4 bottom-4';
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") handleSubmit(e);
+  };
 
   return (
-    <div className={cn("fixed z-50", positionClasses)}>
-      {!isOpen ? (
+    <div className={`fixed z-[2147483646] bottom-6 ${positionClass} font-sans`}>
+      {/* Chat Toggle Button */}
+      {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
-          className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white p-4 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center group"
+          className="w-16 h-16 rounded-full bg-gradient-to-br from-purple-600 via-indigo-500 to-blue-400 text-white shadow-lg hover:shadow-xl transition-all duration-500 hover:scale-110 relative overflow-hidden animate-pulse"
+          title="Open chat"
         >
-          <MessageCircle className="h-6 w-6 group-hover:scale-110 transition-transform duration-300" />
+          <MessageCircle className="w-6 h-6 relative z-10" />
+          <Sparkles className="absolute top-0 right-0 w-3 h-3 text-yellow-400 animate-bounce" />
+          <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent opacity-0 hover:opacity-30 rounded-full transition-opacity duration-300"></div>
         </button>
-      ) : (
-        <div className="w-96 h-[32rem] bg-white rounded-2xl shadow-2xl flex flex-col overflow-hidden border border-gray-200 animate-in slide-in-from-bottom-4 duration-300">
+      )}
+
+      {/* Chat Panel */}
+      {isOpen && (
+        <div
+          className={`mt-3 w-[min(90vw,380px)] rounded-3xl overflow-hidden border backdrop-blur-xl bg-[rgba(255,255,255,0.85)] shadow-2xl transition-all duration-300`}
+          role="dialog"
+        >
           {/* Header */}
-          <div className="bg-gradient-to-r from-purple-600 to-indigo-600 p-4 flex justify-between items-center">
-            <div className="flex items-center space-x-3">
-              <div className="bg-white/20 p-2 rounded-lg">
-                <Sparkles className="h-5 w-5 text-white" />
+          <div className="relative flex items-center justify-between p-4 bg-gradient-to-br from-purple-600 via-indigo-500 to-blue-400 text-white">
+            <div className="flex items-center space-x-3 z-10 relative">
+              <div className="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center shadow-lg">
+                <Bot className="w-6 h-6 animate-pulse text-white" />
               </div>
               <div>
-                <h3 className="text-white font-semibold">{title}</h3>
-                <p className="text-white/80 text-sm">{subtitle}</p>
+                <h3 className="font-bold text-lg tracking-tight">{title}</h3>
+                <p className="text-sm font-medium">{subtitle}</p>
               </div>
             </div>
-            <div className="flex space-x-2">
+            <div className="flex items-center space-x-2 z-10 relative">
               <button
                 onClick={() => setIsMinimized(!isMinimized)}
-                className="text-white/80 hover:text-white"
+                className="h-9 w-9 rounded-xl hover:bg-white/20 transition-all duration-300 flex items-center justify-center"
               >
-                <Minimize2 className="h-5 w-5" />
+                <Minimize2 className="w-4 h-4 text-white" />
               </button>
               <button
                 onClick={() => setIsOpen(false)}
-                className="text-white/80 hover:text-white"
+                className="h-9 w-9 rounded-xl hover:bg-white/20 transition-all duration-300 flex items-center justify-center"
               >
-                <X className="h-5 w-5" />
+                <X className="w-4 h-4 text-white" />
               </button>
             </div>
           </div>
 
-          {/* Messages */}
           {!isMinimized && (
             <>
-              <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50/50">
-                {messages.map((message) => (
-                  <div
-                    key={message.id}
-                    className={cn(
-                      "flex items-start space-x-2",
-                      message.sender === 'user' ? 'justify-end' : 'justify-start'
-                    )}
-                  >
-                    {message.sender === 'assistant' && (
-                      <div className="bg-gradient-to-br from-purple-600 to-indigo-600 p-2 rounded-lg">
-                        <Bot className="h-4 w-4 text-white" />
-                      </div>
-                    )}
+              {/* Messages */}
+              <div className="h-80 overflow-auto p-3 relative">
+                <div ref={scrollRef} className="space-y-3">
+                  {messages.map((msg) => (
                     <div
-                      className={cn(
-                        "max-w-[70%] rounded-2xl px-4 py-2",
-                        message.sender === 'user'
-                          ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white'
-                          : 'bg-white border border-gray-200 shadow-sm'
-                      )}
+                      key={msg.id}
+                      className={`flex ${
+                        msg.sender === "user" ? "justify-end" : "justify-start"
+                      }`}
                     >
-                      <p className="text-sm">{message.text}</p>
-                      <span className="text-[10px] text-gray-400 block mt-1">
-                        {message.timestamp.toLocaleTimeString([], {
-                          hour: '2-digit',
-                          minute: '2-digit',
-                        })}
-                      </span>
-                    </div>
-                    {message.sender === 'user' && (
-                      <div className="bg-gradient-to-br from-purple-600 to-indigo-600 p-2 rounded-lg">
-                        <User className="h-4 w-4 text-white" />
+                      <div
+                        className={`max-w-[75%] rounded-2xl px-4 py-3 text-sm transition-all duration-300 ${
+                          msg.sender === "user"
+                            ? "bg-gradient-to-r from-purple-600 via-indigo-500 to-blue-400 text-white shadow-lg"
+                            : "bg-gray-100 text-gray-800 shadow-sm"
+                        }`}
+                      >
+                        {msg.text}
+                        <div className="text-xs mt-1 text-gray-500">
+                          {msg.timestamp.toLocaleTimeString([], {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </div>
                       </div>
-                    )}
-                  </div>
-                ))}
-                {isLoading && (
-                  <div className="flex items-center space-x-2 text-gray-500">
-                    <Bot className="h-4 w-4" />
-                    <div className="flex space-x-1">
-                      <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></span>
-                      <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-150"></span>
-                      <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-300"></span>
                     </div>
-                  </div>
-                )}
-                <div ref={messagesEndRef} />
+                  ))}
+
+                  {/* Typing Animation */}
+                  {isLoading && (
+                    <div className="flex justify-start space-x-2 items-center">
+                      <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center shadow-sm">
+                        <Bot className="w-4 h-4 text-gray-700" />
+                      </div>
+                      <div className="bg-gray-100/80 rounded-2xl px-4 py-3 flex items-center gap-1 shadow-lg">
+                        <div className="w-2 h-2 bg-purple-600 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+                        <div className="w-2 h-2 bg-indigo-500 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+                        <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce"></div>
+                        <span className="text-xs text-gray-500">AI is thinking...</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
 
               {/* Input */}
-              <form onSubmit={handleSubmit} className="p-4 border-t border-gray-200 bg-white">
-                <div className="flex space-x-2">
-                  <input
-                    type="text"
-                    value={inputValue}
-                    onChange={(e) => setInputValue(e.target.value)}
-                    placeholder="Type your message..."
-                    className="flex-1 rounded-full border border-gray-300 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  />
-                  <button
-                    type="submit"
-                    className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white p-2 rounded-full hover:shadow-md transition-all"
-                  >
-                    <Send className="h-5 w-5" />
-                  </button>
-                </div>
-              </form>
+              <div className="p-3 flex gap-2 border-t bg-gray-50">
+                <input
+                  type="text"
+                  value={inputValue}
+                  onChange={(e) => setInputValue(e.target.value)}
+                  onKeyPress={handleKeyPress}
+                  placeholder="Type your message..."
+                  className="flex-1 px-4 py-2 rounded-full border outline-none focus:ring-2 focus:ring-purple-500 transition-all duration-300"
+                  disabled={isLoading}
+                />
+                <button
+                  onClick={handleSubmit}
+                  disabled={!inputValue.trim() || isLoading}
+                  className="px-4 rounded-full bg-gradient-to-r from-purple-600 via-indigo-500 to-blue-400 text-white flex items-center gap-2 transition-all duration-300 hover:scale-105 disabled:opacity-50"
+                >
+                  {isLoading ? (
+                    <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin"></div>
+                  ) : (
+                    <Send className="w-4 h-4" />
+                  )}
+                  Send
+                </button>
+              </div>
             </>
           )}
         </div>
@@ -216,4 +258,4 @@ const PremiumChat: React.FC<PremiumChatProps> = ({
   );
 };
 
-export default PremiumChat;
+export default PremiumChatWidget;
