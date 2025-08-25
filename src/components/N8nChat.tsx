@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Send, MessageCircle, X, Bot, User } from "lucide-react";
+import { Send, MessageCircle, X, Bot } from "lucide-react";
 
 // Utility for combining class names
 const cn = (...classes: any[]) => {
@@ -22,7 +22,7 @@ interface N8nChatProps {
 
 const N8nChat: React.FC<N8nChatProps> = ({
   webhookUrl = "https://streamline1.app.n8n.cloud/webhook/c803253c-f26b-4a80-83a5-53fad70dbdb6/chat",
-  title = "AI Assistant",
+  title = "Your Assistant",
   subtitle = "How can I help you today?",
   position = "bottom-right",
 }) => {
@@ -30,7 +30,7 @@ const N8nChat: React.FC<N8nChatProps> = ({
   const [messages, setMessages] = useState<Message[]>([
     {
       id: crypto.randomUUID(),
-      text: "👋 Hey! Welcome to StreamlineFlo",
+      text: "👋 Hi! This is your premium chatbot design. Connect your AI service to make it functional.",
       sender: "assistant",
       timestamp: new Date(),
     },
@@ -114,13 +114,14 @@ const N8nChat: React.FC<N8nChatProps> = ({
     }
   };
 
-  const handleSubmit = (e?: React.FormEvent | React.KeyboardEvent) => {
-    e?.preventDefault();
+  const handleSendMessage = () => {
     sendMessage(inputValue);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter") handleSubmit(e);
+    if (e.key === "Enter") {
+      handleSendMessage();
+    }
   };
 
   const formatTime = (date: Date) => {
@@ -130,15 +131,12 @@ const N8nChat: React.FC<N8nChatProps> = ({
   return (
     <>
       <style>{`
-        :root {
-          --chatbot-primary: #6366f1;
-          --chatbot-secondary: #8b5cf6;
-          --chatbot-bg: #1a1a2e;
-          --chatbot-surface: #16213e;
-          --chatbot-border: #3b4d66;
-          --chatbot-success: #10b981;
-        }
-
+        .chatbot-bg { background-color: #1a1a2e; }
+        .chatbot-surface { background-color: #16213e; }
+        .chatbot-border { color: #3b4d66; }
+        .chatbot-primary { background: linear-gradient(to right, #6366f1, #8b5cf6); }
+        .chatbot-success { background-color: #10b981; }
+        
         @keyframes chatbot-scale-in {
           0% { opacity: 0; transform: scale(0.8); }
           100% { opacity: 1; transform: scale(1); }
@@ -167,13 +165,13 @@ const N8nChat: React.FC<N8nChatProps> = ({
         }
       `}</style>
       
-      <div className={`fixed z-[2147483646] bottom-6 ${positionClass} font-sans`}>
+      <div className={`fixed bottom-6 ${positionClass} z-50 font-sans`}>
         {/* Chat Widget */}
         <div
           className={cn(
             "relative w-96 h-[500px] mb-4 rounded-2xl overflow-hidden transition-all duration-200",
-            "bg-[var(--chatbot-bg)]/95 backdrop-blur-xl border border-[var(--chatbot-border)]/30",
-            "shadow-[0_20px_40px_-10px] shadow-[var(--chatbot-primary)]/30",
+            "bg-[#1a1a2e]/95 backdrop-blur-xl border border-[#3b4d66]/30",
+            "shadow-[0_20px_40px_-10px] shadow-[#6366f1]/30",
             "md:w-96 md:h-[500px] max-md:w-[calc(100vw-48px)] max-md:h-[calc(100vh-100px)] max-md:fixed max-md:bottom-20 max-md:right-6 max-md:left-6 max-md:mb-0",
             isOpen 
               ? "block animate-chatbot-scale-in" 
@@ -189,11 +187,11 @@ const N8nChat: React.FC<N8nChatProps> = ({
           </button>
 
           {/* Header */}
-          <div className="bg-gradient-to-r from-[var(--chatbot-primary)] to-[var(--chatbot-secondary)] p-4 pr-12 flex items-center">
+          <div className="bg-gradient-to-r from-[#6366f1] to-[#8b5cf6] p-4 pr-12 flex items-center">
             <div className="flex items-center gap-3">
               <div className="relative w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
                 <Bot className="w-5 h-5 text-white" />
-                <div className="absolute -top-1 -right-1 w-4 h-4 bg-[var(--chatbot-success)] rounded-full border-2 border-[var(--chatbot-bg)] animate-chatbot-pulse" />
+                <div className="absolute -top-1 -right-1 w-4 h-4 bg-[#10b981] rounded-full border-2 border-[#1a1a2e] animate-chatbot-pulse" />
               </div>
               <div>
                 <h3 className="text-white font-semibold text-sm">{title}</h3>
@@ -203,7 +201,7 @@ const N8nChat: React.FC<N8nChatProps> = ({
           </div>
 
           {/* Messages */}
-          <div className="h-[350px] p-4 overflow-y-auto bg-[var(--chatbot-bg)]" ref={scrollRef}>
+          <div className="h-[350px] p-4 overflow-y-auto bg-[#1a1a2e]">
             {messages.map((message) => (
               <div
                 key={message.id}
@@ -216,8 +214,8 @@ const N8nChat: React.FC<N8nChatProps> = ({
                   className={cn(
                     "inline-block max-w-[80%] p-3 rounded-2xl text-sm leading-relaxed",
                     message.sender === 'user'
-                      ? "bg-gradient-to-r from-[var(--chatbot-primary)] to-[var(--chatbot-secondary)] text-white"
-                      : "bg-[var(--chatbot-surface)] text-white/90"
+                      ? "bg-gradient-to-r from-[#6366f1] to-[#8b5cf6] text-white"
+                      : "bg-[#16213e] text-white/90"
                   )}
                 >
                   {message.text}
@@ -236,20 +234,20 @@ const N8nChat: React.FC<N8nChatProps> = ({
           </div>
 
           {/* Input Area */}
-          <div className="p-4 border-t border-[var(--chatbot-border)]/20 bg-[var(--chatbot-bg)] flex gap-2">
+          <div className="p-4 border-t border-[#3b4d66]/20 bg-[#1a1a2e] flex gap-2">
             <input
               type="text"
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               onKeyPress={handleKeyPress}
               placeholder="Type your message..."
-              className="flex-1 bg-[var(--chatbot-surface)] border border-[var(--chatbot-border)]/30 rounded-lg px-3 py-3 text-white text-sm outline-none focus:border-[var(--chatbot-primary)] focus:shadow-[0_0_0_2px] focus:shadow-[var(--chatbot-primary)]/20 placeholder-white/50"
+              className="flex-1 bg-[#16213e] border border-[#3b4d66]/30 rounded-lg px-3 py-3 text-white text-sm outline-none focus:border-[#6366f1] focus:shadow-[0_0_0_2px] focus:shadow-[#6366f1]/20 placeholder-white/50"
               disabled={isLoading}
             />
             <button
-              onClick={() => handleSubmit()}
+              onClick={handleSendMessage}
               disabled={!inputValue.trim() || isLoading}
-              className="bg-gradient-to-r from-[var(--chatbot-primary)] to-[var(--chatbot-secondary)] border-none rounded-lg px-3 py-3 text-white cursor-pointer transition-all duration-200 flex items-center justify-center hover:opacity-90 hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
+              className="bg-gradient-to-r from-[#6366f1] to-[#8b5cf6] border-none rounded-lg px-3 py-3 text-white cursor-pointer transition-all duration-200 flex items-center justify-center hover:opacity-90 hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
             >
               <Send className="w-4 h-4" />
             </button>
@@ -260,8 +258,8 @@ const N8nChat: React.FC<N8nChatProps> = ({
         <button
           onClick={() => setIsOpen(!isOpen)}
           className={cn(
-            "w-14 h-14 rounded-full bg-gradient-to-r from-[var(--chatbot-primary)] to-[var(--chatbot-secondary)] border-none text-white cursor-pointer transition-all duration-300 flex items-center justify-center relative",
-            "shadow-[0_0_30px] shadow-[var(--chatbot-primary)]/40",
+            "w-14 h-14 rounded-full bg-gradient-to-r from-[#6366f1] to-[#8b5cf6] border-none text-white cursor-pointer transition-all duration-300 flex items-center justify-center relative",
+            "shadow-[0_0_30px] shadow-[#6366f1]/40",
             "hover:scale-110",
             isOpen ? "scale-90" : "scale-100"
           )}
