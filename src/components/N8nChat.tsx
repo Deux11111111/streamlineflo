@@ -30,7 +30,7 @@ const N8nChat: React.FC<N8nChatProps> = ({
   const [messages, setMessages] = useState<Message[]>([
     {
       id: crypto.randomUUID(),
-      text: "👋 Hi! This is your premium chatbot design. Connect your AI service to make it functional.",
+      text: "Hi! This is your personal assistant. How can I help?",
       sender: "assistant",
       timestamp: new Date(),
     },
