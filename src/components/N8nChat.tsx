@@ -1,30 +1,25 @@
-// N8nChat.tsx
-import React, { useState, useRef, useEffect } from 'react';
-import { MessageCircle, Send, X, Minimize2, Sparkles, Bot, User } from 'lucide-react';
-import clsx from 'clsx';
-import { twMerge } from 'tailwind-merge';
-
-const cn = (...inputs: any[]) => twMerge(clsx(inputs));
+import React, { useState, useRef, useEffect } from "react";
+import { Send, MessageCircle, X, Minimize2, Sparkles, Bot, User } from "lucide-react";
 
 interface Message {
   id: string;
   text: string;
-  sender: 'user' | 'assistant';
+  sender: "user" | "assistant";
   timestamp: Date;
 }
 
 interface N8nChatProps {
-  webhookUrl?: string;
+  webhookUrl: string;
   title?: string;
   subtitle?: string;
-  position?: 'bottom-right' | 'bottom-left';
+  position?: "bottom-right" | "bottom-left";
 }
 
 const N8nChat: React.FC<N8nChatProps> = ({
   webhookUrl = "https://streamline1.app.n8n.cloud/webhook/c803253c-f26b-4a80-83a5-53fad70dbdb6/chat",
   title = "AI Assistant",
   subtitle = "",
-  position = "bottom-right"
+  position = "bottom-right",
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
@@ -36,76 +31,96 @@ const N8nChat: React.FC<N8nChatProps> = ({
       timestamp: new Date(),
     },
   ]);
-  const [inputValue, setInputValue] = useState('');
+  const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
+  // Persistent sessionId across chat
   const [sessionId] = useState(() => crypto.randomUUID());
-  const positionClass = position === 'bottom-left' ? 'left-6' : 'right-6';
+  const positionClass = position === "bottom-left" ? "left-6" : "right-6";
 
-  // Auto scroll
+  // Auto scroll to bottom when messages change
   useEffect(() => {
-    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
   }, [messages]);
 
   const sendMessage = async (message: string) => {
     if (!message.trim() || isLoading) return;
+
     setIsLoading(true);
 
     const userMessage: Message = {
       id: crypto.randomUUID(),
       text: message,
-      sender: 'user',
+      sender: "user",
       timestamp: new Date(),
     };
 
-    setMessages(prev => [...prev, userMessage]);
-    setInputValue('');
+    setMessages((prev) => [...prev, userMessage]);
+    setInputValue("");
 
-    // Chat Trigger payload
     const payload = {
-      sessionId,
+      sessionId: sessionId,
       action: "sendMessage",
       chatInput: message,
     };
 
     try {
-      const res = await fetch(webhookUrl!, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch(webhookUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
 
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
-      const data = await res.text();
+      const responseData = await res.text();
 
       try {
-        const jsonResponse = JSON.parse(data);
-        const aiResponse = jsonResponse.output || jsonResponse.text || jsonResponse.message || jsonResponse.response;
+        const jsonResponse = JSON.parse(responseData);
+        const aiResponse =
+          jsonResponse.output ||
+          jsonResponse.text ||
+          jsonResponse.message ||
+          jsonResponse.response;
 
-        setMessages(prev => [...prev, {
-          id: crypto.randomUUID(),
-          text: aiResponse ? aiResponse : typeof jsonResponse === 'string' ? jsonResponse : JSON.stringify(jsonResponse),
-          sender: 'assistant',
-          timestamp: new Date(),
-        }]);
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: crypto.randomUUID(),
+            text: aiResponse
+              ? aiResponse
+              : typeof jsonResponse === "string"
+              ? jsonResponse
+              : JSON.stringify(jsonResponse),
+            sender: "assistant",
+            timestamp: new Date(),
+          },
+        ]);
       } catch {
-        setMessages(prev => [...prev, {
-          id: crypto.randomUUID(),
-          text: data,
-          sender: 'assistant',
-          timestamp: new Date(),
-        }]);
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: crypto.randomUUID(),
+            text: responseData,
+            sender: "assistant",
+            timestamp: new Date(),
+          },
+        ]);
       }
-    } catch (err) {
-      console.error(err);
-      setMessages(prev => [...prev, {
-        id: crypto.randomUUID(),
-        text: "Sorry, I'm having trouble connecting right now. Please try again.",
-        sender: 'assistant',
-        timestamp: new Date(),
-      }]);
+    } catch (error) {
+      console.error("Send message error:", error);
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: crypto.randomUUID(),
+          text: "Sorry, I'm having trouble connecting right now. Please try again.",
+          sender: "assistant",
+          timestamp: new Date(),
+        },
+      ]);
     } finally {
       setIsLoading(false);
     }
@@ -117,44 +132,46 @@ const N8nChat: React.FC<N8nChatProps> = ({
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') handleSubmit(e);
+    if (e.key === "Enter") handleSubmit(e);
   };
 
-  if (!isOpen) {
-    return (
-      <div className={cn("fixed z-50", positionClass)}>
+  return (
+    <div className={`fixed z-[2147483646] bottom-6 ${positionClass} font-sans`}>
+      {/* Chat Toggle Button */}
+      {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
-          className="w-16 h-16 rounded-full bg-gradient-to-br from-[hsl(var(--premium-primary))] via-[hsl(var(--premium-secondary))] to-[hsl(var(--premium-accent))] hover:from-[hsl(var(--premium-primary-dark))] hover:via-[hsl(var(--premium-primary))] hover:to-[hsl(var(--premium-secondary))] text-white shadow-[var(--premium-shadow)] hover:shadow-[var(--premium-glow)] transition-all duration-500 hover:scale-110 group border-0 animate-pulse relative overflow-hidden"
+          className="w-16 h-16 rounded-full bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 hover:scale-110 transition-all shadow-lg flex items-center justify-center text-white"
         >
-          <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-          <MessageCircle className="w-6 h-6 group-hover:scale-110 transition-transform duration-300" />
-          <div className="absolute inset-0 rounded-full bg-gradient-to-br from-[hsl(var(--premium-primary))] to-[hsl(var(--premium-secondary))] opacity-0 scale-110 group-hover:opacity-20 group-hover:scale-125 transition-all duration-500 blur-xl"></div>
+          <MessageCircle className="w-6 h-6" />
         </button>
-      </div>
-    );
-  }
+      )}
 
-  return (
-    <div className={cn("fixed z-50 transition-all duration-500 animate-scale-in", positionClass)}>
-      <div className={cn("w-96 transition-all duration-500 ease-out transform", isMinimized ? "h-16 scale-95" : "h-[600px] scale-100")}>
-        <div className="bg-[hsl(var(--premium-glass))] backdrop-blur-2xl border border-[hsl(var(--premium-border))] rounded-3xl shadow-[var(--premium-shadow)] hover:shadow-[var(--premium-glow)] overflow-hidden h-full flex flex-col transition-all duration-300 relative">
-          <div className="absolute inset-0 bg-gradient-to-br from-[hsl(var(--premium-primary))]/10 via-transparent to-[hsl(var(--premium-secondary))]/10 pointer-events-none"></div>
-          <div className="relative bg-gradient-to-br from-[hsl(var(--premium-primary))] via-[hsl(var(--premium-secondary))] to-[hsl(var(--premium-accent))] p-4 flex items-center justify-between">
-            <div className="relative z-10 flex items-center space-x-3">
-              <div className="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center border border-white/30 shadow-lg">
-                <Bot className="w-6 h-6 text-white animate-pulse" />
+      {/* Chat Panel */}
+      {isOpen && (
+        <div className="mt-3 w-[min(90vw,380px)] rounded-3xl overflow-hidden shadow-lg border border-gray-200 backdrop-blur-xl">
+          {/* Header */}
+          <div className="flex items-center justify-between p-4 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white rounded-t-3xl">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 rounded-xl bg-white/30 flex items-center justify-center">
+                <Bot className="w-5 h-5 animate-pulse" />
               </div>
               <div>
-                <h3 className="text-white font-bold text-lg tracking-tight">{title}</h3>
-                <p className="text-white/90 text-sm font-medium">{subtitle}</p>
+                <h3 className="font-bold">{title}</h3>
+                {subtitle && <p className="text-sm opacity-90">{subtitle}</p>}
               </div>
             </div>
-            <div className="relative z-10 flex items-center space-x-1">
-              <button onClick={() => setIsMinimized(!isMinimized)} className="text-white hover:bg-white/20 h-9 w-9 rounded-xl transition-all duration-300 hover:scale-110 flex items-center justify-center">
+            <div className="flex items-center space-x-1">
+              <button
+                onClick={() => setIsMinimized(!isMinimized)}
+                className="p-2 rounded-lg bg-white/20 hover:bg-white/30 transition"
+              >
                 <Minimize2 className="w-4 h-4" />
               </button>
-              <button onClick={() => setIsOpen(false)} className="text-white hover:bg-white/20 h-9 w-9 rounded-xl transition-all duration-300 hover:scale-110 hover:rotate-90 flex items-center justify-center">
+              <button
+                onClick={() => setIsOpen(false)}
+                className="p-2 rounded-lg bg-white/20 hover:bg-white/30 transition"
+              >
                 <X className="w-4 h-4" />
               </button>
             </div>
@@ -162,77 +179,64 @@ const N8nChat: React.FC<N8nChatProps> = ({
 
           {!isMinimized && (
             <>
-              <div className="flex-1 p-6 overflow-y-auto bg-gradient-to-b from-[hsl(var(--premium-dark))] to-[hsl(var(--premium-dark-accent))] relative">
-                <div className="absolute inset-0 bg-gradient-to-br from-[hsl(var(--premium-primary))]/5 via-transparent to-[hsl(var(--premium-secondary))]/5"></div>
-                <div ref={scrollRef} className="space-y-6 relative z-10">
-                  {messages.length === 0 && (
-                    <div className="text-center py-12 animate-fade-in">
-                      <div className="w-20 h-20 mx-auto mb-6 rounded-3xl bg-gradient-to-br from-[hsl(var(--premium-primary))] via-[hsl(var(--premium-secondary))] to-[hsl(var(--premium-accent))] flex items-center justify-center shadow-[var(--premium-shadow)] animate-pulse">
-                        <Bot className="w-10 h-10 text-white" />
-                      </div>
-                      <h4 className="text-[hsl(var(--premium-text))] font-semibold text-lg mb-2">AI Assistant Ready</h4>
-                      <p className="text-[hsl(var(--premium-text-muted))] text-sm max-w-xs mx-auto leading-relaxed">
-                        Welcome! I'm your AI assistant. How can I help you streamline your workflow today?
-                      </p>
-                    </div>
-                  )}
-
-                  {messages.map((message, idx) => (
-                    <div key={message.id} className={cn("flex items-start space-x-3", message.sender === 'user' ? "justify-end flex-row-reverse space-x-reverse" : "justify-start")}>
-                      <div className={cn("w-8 h-8 rounded-2xl flex items-center justify-center shrink-0 shadow-lg", message.sender === 'user' ? "bg-gradient-to-br from-[hsl(var(--premium-primary))] to-[hsl(var(--premium-secondary))]" : "bg-gradient-to-br from-[hsl(var(--premium-dark-lighter))] to-[hsl(var(--premium-dark-accent))] border border-[hsl(var(--premium-border))]")}>
-                        {message.sender === 'user' ? <User className="w-4 h-4 text-white"/> : <Bot className="w-4 h-4 text-[hsl(var(--premium-text))]"/>}
-                      </div>
-                      <div className={cn("max-w-[75%] rounded-2xl px-4 py-3 text-sm backdrop-blur-sm shadow-lg transition-all duration-300 hover:shadow-xl", message.sender === 'user' ? "bg-gradient-to-br from-[hsl(var(--premium-primary))] via-[hsl(var(--premium-secondary))] to-[hsl(var(--premium-accent))] text-white shadow-[var(--premium-shadow)]" : "bg-[hsl(var(--premium-dark-lighter))]/80 backdrop-blur-xl text-[hsl(var(--premium-text))] border border-[hsl(var(--premium-border))]/50")}>
-                        <p className="leading-relaxed font-medium">{message.text}</p>
-                        <div className={cn("text-xs mt-2 opacity-70", message.sender === 'user' ? "text-white/80" : "text-[hsl(var(--premium-text-muted))]")}>
-                          {message.timestamp.toLocaleTimeString([], { hour:'2-digit', minute:'2-digit'})}
+              {/* Messages */}
+              <div className="h-80 overflow-auto px-4 py-4 bg-gray-50">
+                <div ref={scrollRef} className="space-y-3">
+                  {messages.map((msg) => (
+                    <div
+                      key={msg.id}
+                      className={`flex ${msg.sender === "user" ? "justify-end" : "justify-start"}`}
+                    >
+                      <div
+                        className={`max-w-[75%] px-4 py-2 rounded-2xl ${
+                          msg.sender === "user"
+                            ? "bg-indigo-500 text-white shadow-md"
+                            : "bg-gray-100 text-gray-800 shadow-sm"
+                        }`}
+                      >
+                        <p>{msg.text}</p>
+                        <div className="text-xs opacity-60 mt-1 text-right">
+                          {msg.timestamp.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                         </div>
                       </div>
                     </div>
                   ))}
-
                   {isLoading && (
-                    <div className="flex items-start space-x-3">
-                      <div className="w-8 h-8 rounded-2xl bg-gradient-to-br from-[hsl(var(--premium-dark-lighter))] to-[hsl(var(--premium-dark-accent))] border border-[hsl(var(--premium-border))] flex items-center justify-center shrink-0 shadow-lg">
-                        <Bot className="w-4 h-4 text-[hsl(var(--premium-text))]" />
-                      </div>
-                      <div className="bg-[hsl(var(--premium-dark-lighter))]/80 backdrop-blur-xl text-[hsl(var(--premium-text))] rounded-2xl px-4 py-3 border border-[hsl(var(--premium-border))]/50 shadow-lg flex items-center gap-1">
-                        <div className="w-2 h-2 bg-gradient-to-r from-[hsl(var(--premium-primary))] to-[hsl(var(--premium-secondary))] rounded-full animate-bounce [animation-delay:-0.3s]"></div>
-                        <div className="w-2 h-2 bg-gradient-to-r from-[hsl(var(--premium-secondary))] to-[hsl(var(--premium-accent))] rounded-full animate-bounce [animation-delay:-0.15s]"></div>
-                        <div className="w-2 h-2 bg-gradient-to-r from-[hsl(var(--premium-accent))] to-[hsl(var(--premium-primary))] rounded-full animate-bounce"></div>
-                        <span className="text-xs text-[hsl(var(--premium-text-muted))] ml-2">AI is thinking...</span>
-                      </div>
+                    <div className="flex justify-start space-x-2 items-center text-gray-500">
+                      <Bot className="w-4 h-4 animate-spin" />
+                      <span>AI is thinking...</span>
                     </div>
                   )}
-
-                  <div ref={scrollRef} />
                 </div>
               </div>
 
               {/* Input */}
-              <div className="p-6 bg-gradient-to-r from-[hsl(var(--premium-dark-accent))] to-[hsl(var(--premium-dark))] border-t border-[hsl(var(--premium-border))]/30 backdrop-blur-xl">
-                <form className="flex space-x-3" onSubmit={handleSubmit}>
-                  <input
-                    value={inputValue}
-                    onChange={e => setInputValue(e.target.value)}
-                    onKeyPress={handleKeyPress}
-                    placeholder="Type your message..."
-                    className="flex-1 rounded-2xl px-4 py-2 bg-[hsl(var(--premium-dark-lighter))]/80 backdrop-blur-xl border border-[hsl(var(--premium-border))]/50 text-[hsl(var(--premium-text))] placeholder:text-[hsl(var(--premium-text-muted))]"
-                    disabled={isLoading}
-                  />
-                  <button
-                    type="submit"
-                    disabled={!inputValue.trim() || isLoading}
-                    className="px-6 h-12 rounded-2xl border-0 shadow-[var(--premium-shadow)] hover:shadow-[var(--premium-glow)] bg-gradient-to-br from-[hsl(var(--premium-primary))] via-[hsl(var(--premium-secondary))] to-[hsl(var(--premium-accent))] text-white transition-all duration-300 hover:scale-105 disabled:opacity-50"
-                  >
+              <div className="flex gap-2 p-3 border-t bg-white/50 backdrop-blur-sm">
+                <input
+                  type="text"
+                  value={inputValue}
+                  onChange={(e) => setInputValue(e.target.value)}
+                  onKeyPress={handleKeyPress}
+                  placeholder="Type your message..."
+                  className="flex-1 h-10 px-3 rounded-full border outline-none"
+                  disabled={isLoading}
+                />
+                <button
+                  onClick={() => handleSubmit()}
+                  disabled={!inputValue.trim() || isLoading}
+                  className="h-10 px-4 bg-indigo-500 text-white rounded-full hover:bg-indigo-600 transition flex items-center gap-2"
+                >
+                  {isLoading ? (
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  ) : (
                     <Send className="w-4 h-4" />
-                  </button>
-                </form>
+                  )}
+                </button>
               </div>
             </>
           )}
         </div>
-      </div>
+      )}
     </div>
   );
 };
