@@ -10,14 +10,15 @@ const Hero = () => {
     <section className="relative min-h-screen flex flex-col overflow-hidden">
       {/* Header with Logo */}
       <header className="relative z-20 pt-8 px-6">
-        <div className="container mx-auto">
-          <img 
-            src="/lovable-uploads/709100ab-f590-4ead-92c2-c97a43e48597.png" 
-            alt="StreamlineFlo - AI Workflow Automation and Business Process Automation Services" 
-            className="h-24 md:h-32 lg:h-40 w-auto animate-scale-in"
-          />
-        </div>
-      </header>
+  <div className="container mx-auto">
+    <img 
+      src="/logo.png" 
+      alt="StreamlineFlo Logo" 
+      className="h-24 md:h-32 lg:h-40 w-auto animate-scale-in"
+    />
+  </div>
+</header>
+
 
       {/* Background Effects */}
       <div className="absolute inset-0 bg-gradient-glow opacity-60"></div>
