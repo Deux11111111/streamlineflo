@@ -44,12 +44,12 @@ const N8nChat: React.FC<N8nChatProps> = ({
   const positionClass = position === "bottom-left" ? "left-6" : "right-6";
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages]);
+  }, [messages, isLoading]);
 
   const sendMessage = async (text: string) => {
     if (!text.trim() || isLoading) return;
@@ -60,7 +60,7 @@ const N8nChat: React.FC<N8nChatProps> = ({
       sender: "user",
       timestamp: new Date(),
     };
-    setMessages(prev => [...prev, userMessage]);
+    setMessages((prev) => [...prev, userMessage]);
     setInputValue("");
     setIsLoading(true);
 
@@ -82,25 +82,39 @@ const N8nChat: React.FC<N8nChatProps> = ({
 
       try {
         const jsonResponse = JSON.parse(responseData);
-        const aiResponse = jsonResponse.output || jsonResponse.text || jsonResponse.message || jsonResponse.response;
-        setMessages(prev => [
+        const aiResponse =
+          jsonResponse.output ||
+          jsonResponse.text ||
+          jsonResponse.message ||
+          jsonResponse.response;
+
+        setMessages((prev) => [
           ...prev,
           {
             id: crypto.randomUUID(),
-            text: aiResponse ?? (typeof jsonResponse === "string" ? jsonResponse : JSON.stringify(jsonResponse)),
+            text:
+              aiResponse ??
+              (typeof jsonResponse === "string"
+                ? jsonResponse
+                : JSON.stringify(jsonResponse)),
             sender: "assistant",
             timestamp: new Date(),
           },
         ]);
       } catch {
-        setMessages(prev => [
+        setMessages((prev) => [
           ...prev,
-          { id: crypto.randomUUID(), text: responseData, sender: "assistant", timestamp: new Date() },
+          {
+            id: crypto.randomUUID(),
+            text: responseData,
+            sender: "assistant",
+            timestamp: new Date(),
+          },
         ]);
       }
     } catch (error) {
       console.error("Send message error:", error);
-      setMessages(prev => [
+      setMessages((prev) => [
         ...prev,
         {
           id: crypto.randomUUID(),
@@ -125,7 +139,7 @@ const N8nChat: React.FC<N8nChatProps> = ({
   };
 
   const formatTime = (date: Date) => {
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   };
 
   return (
@@ -163,6 +177,26 @@ const N8nChat: React.FC<N8nChatProps> = ({
         .animate-chatbot-pulse {
           animation: chatbot-pulse 2s infinite;
         }
+
+        @keyframes chatbot-bounce {
+          0%, 80%, 100% { transform: scale(0); opacity: 0.5; }
+          40% { transform: scale(1); opacity: 1; }
+        }
+
+        .typing-dot {
+          display: inline-block;
+          width: 6px;
+          height: 6px;
+          border-radius: 50%;
+          animation: chatbot-bounce 1.4s infinite ease-in-out both;
+        }
+
+        .typing-dot:nth-child(1) {
+          animation-delay: -0.32s;
+        }
+        .typing-dot:nth-child(2) {
+          animation-delay: -0.16s;
+        }
       `}</style>
       
       <div className={`fixed bottom-6 ${positionClass} z-50 font-sans`}>
@@ -173,9 +207,7 @@ const N8nChat: React.FC<N8nChatProps> = ({
             "bg-[#1a1a2e]/95 backdrop-blur-xl border border-[#3b4d66]/30",
             "shadow-[0_20px_40px_-10px] shadow-[#6366f1]/30",
             "md:w-96 md:h-[500px] max-md:w-[calc(100vw-48px)] max-md:h-[calc(100vh-100px)] max-md:fixed max-md:bottom-20 max-md:right-6 max-md:left-6 max-md:mb-0",
-            isOpen 
-              ? "block animate-chatbot-scale-in" 
-              : "hidden"
+            isOpen ? "block animate-chatbot-scale-in" : "hidden"
           )}
         >
           {/* Close Button - Top Right */}
@@ -207,13 +239,13 @@ const N8nChat: React.FC<N8nChatProps> = ({
                 key={message.id}
                 className={cn(
                   "mb-4 animate-chatbot-slide-up",
-                  message.sender === 'user' ? "text-right" : "text-left"
+                  message.sender === "user" ? "text-right" : "text-left"
                 )}
               >
                 <div
                   className={cn(
                     "inline-block max-w-[80%] p-3 rounded-2xl text-sm leading-relaxed",
-                    message.sender === 'user'
+                    message.sender === "user"
                       ? "bg-gradient-to-r from-[#6366f1] to-[#8b5cf6] text-white"
                       : "bg-[#16213e] text-white/90"
                   )}
@@ -222,7 +254,9 @@ const N8nChat: React.FC<N8nChatProps> = ({
                   <div
                     className={cn(
                       "text-xs mt-1 opacity-60",
-                      message.sender === 'user' ? "text-white/80" : "text-white/60"
+                      message.sender === "user"
+                        ? "text-white/80"
+                        : "text-white/60"
                     )}
                   >
                     {formatTime(message.timestamp)}
@@ -230,6 +264,18 @@ const N8nChat: React.FC<N8nChatProps> = ({
                 </div>
               </div>
             ))}
+
+            {/* Typing Indicator */}
+            {isLoading && (
+              <div className="mb-4 text-left animate-chatbot-slide-up">
+                <div className="inline-flex items-center gap-1 bg-[#16213e] text-white/90 px-3 py-2 rounded-2xl">
+                  <span className="typing-dot bg-white/70"></span>
+                  <span className="typing-dot bg-white/70"></span>
+                  <span className="typing-dot bg-white/70"></span>
+                </div>
+              </div>
+            )}
+
             <div ref={messagesEndRef} />
           </div>
 
@@ -276,3 +322,4 @@ const N8nChat: React.FC<N8nChatProps> = ({
 };
 
 export default N8nChat;
+
