@@ -25,7 +25,7 @@ const App = () => (
 
       {/* N8n Chat Widget */}
       <N8nChat 
-        webhookUrl="https://streamline1.app.n8n.cloud/webhook/49141e25-b115-46c7-a7c9-f1c34a5fb0cb/chat"
+        webhookUrl="https://jeffzeb12.app.n8n.cloud/webhook/c803253c-f26b-4a80-83a5-53fad70dbdb6/chat"
         title="Your Assistant"
         subtitle="How can I help you today?"
         position="bottom-right"
