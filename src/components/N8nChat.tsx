@@ -21,7 +21,7 @@ interface N8nChatProps {
 }
 
 const N8nChat: React.FC<N8nChatProps> = ({
-  webhookUrl = "https://streamline1.app.n8n.cloud/webhook/c803253c-f26b-4a80-83a5-53fad70dbdb6/chat",
+  webhookUrl = "https://jeffzeb12.app.n8n.cloud/webhook/c803253c-f26b-4a80-83a5-53fad70dbdb6/chat",
   title = "Your Assistant",
   subtitle = "How can I help you today?",
   position = "bottom-right",
