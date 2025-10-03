@@ -1,4 +1,5 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+// src/components/Services.tsx
+import { Card, CardContent, CardDescription, CardHeader } from "@/components/ui/card";
 import { Bot, Workflow, BarChart3, Clock, Cpu } from "lucide-react";
 
 const Services = () => {
@@ -6,31 +7,31 @@ const Services = () => {
     {
       icon: Bot,
       title: "AI Process Automation",
-      description: "Intelligent automation and robotic process automation (RPA) that learns and adapts to your business processes, eliminating repetitive manual tasks.",
+      description: "StreamlineFlo provides intelligent automation and robotic process automation (RPA) that learns and adapts to your business processes, eliminating repetitive manual tasks.",
       features: ["Smart Decision Making", "Machine Learning Algorithms", "24/7 Automated Operation"]
     },
     {
       icon: Workflow,
       title: "Business Process Automation",
-      description: "Streamline complex business workflows with advanced automation tools, workflow management systems, and seamless integrations.",
+      description: "StreamlineFlo helps streamline complex business workflows with advanced automation tools, workflow management systems, and seamless integrations.",
       features: ["Automated Workflows", "Process Optimization", "Enterprise Integration"]
     },
     {
       icon: BarChart3,
       title: "Automation Analytics & Insights",
-      description: "Data-driven insights to optimize automated processes, measure automation ROI, and identify new workflow automation opportunities.",
+      description: "With StreamlineFlo, you gain data-driven insights to optimize automated processes, measure automation ROI, and identify new workflow automation opportunities.",
       features: ["Automation Performance Metrics", "Process Analytics", "ROI Optimization"]
     },
     {
       icon: Clock,
       title: "Automation Maintenance & Support",
-      description: "Comprehensive maintenance and support services to ensure your automated workflows and business processes run smoothly.",
+      description: "StreamlineFlo offers comprehensive maintenance and support services to ensure your automated workflows and business processes run smoothly.",
       features: ["24/7 Automation Monitoring", "Performance Optimization", "Expert Technical Support"]
     },
     {
       icon: Cpu,
       title: "Custom Automation Development",
-      description: "Tailored workflow automation and intelligent automation solutions built specifically for your unique business process requirements.",
+      description: "StreamlineFlo delivers tailored workflow automation and intelligent automation solutions built specifically for your unique business process requirements.",
       features: ["Bespoke Automation Solutions", "Legacy System Integration"]
     }
   ];
@@ -43,8 +44,7 @@ const Services = () => {
             Our <span className="gradient-text">Workflow Automation</span> Services
           </h2>
           <p className="font-body text-xl text-muted-foreground max-w-3xl mx-auto">
-            Comprehensive business process automation and intelligent automation solutions designed to transform your operations, 
-            reduce manual tasks, and accelerate digital transformation.
+            Comprehensive business process automation and intelligent automation solutions from StreamlineFlo designed to transform your operations, reduce manual tasks, and accelerate digital transformation.
           </p>
         </div>
 
@@ -52,6 +52,7 @@ const Services = () => {
           {services.map((service, index) => (
             <Card 
               key={index} 
+              aria-label={`Service: ${service.title} by StreamlineFlo`}
               className="card-glow hover-lift bg-card/80 backdrop-blur-sm border-border/50 animate-scale-in"
               style={{ animationDelay: `${index * 0.1}s` }}
             >
@@ -59,7 +60,7 @@ const Services = () => {
                 <div className="mx-auto w-16 h-16 bg-gradient-primary rounded-2xl flex items-center justify-center mb-4 animate-pulse-glow">
                   <service.icon className="w-8 h-8 text-white" />
                 </div>
-                <CardTitle className="font-display text-xl font-bold text-glow">{service.title}</CardTitle>
+                <h3 className="font-display text-xl font-bold text-glow">{service.title}</h3>
                 <CardDescription className="font-body text-muted-foreground">
                   {service.description}
                 </CardDescription>
