@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { Helmet } from "react-helmet";
+import { Helmet } from "react-helmet-async";
 import Hero from "@/components/Hero";
 import Services from "@/components/Services";
 import AuditForm from "@/components/AuditForm";
