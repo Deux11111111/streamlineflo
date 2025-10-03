@@ -33,10 +33,8 @@ const Hero = () => {
 
         {/* Hero Content */}
         <div className="max-w-5xl mx-auto animate-slide-up">
-          {/* <-- ONLY CHANGE: brand added into H1. All classes kept exactly as original. --> */}
           <h1 className="font-display text-4xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight heading-glow">
             StreamlineFlo — AI Workflow Automation
-            <span className="gradient-text block">& Business Process Automation</span>
           </h1>
           
           <p className="font-body text-xl md:text-2xl text-muted-foreground mb-8 max-w-3xl mx-auto leading-relaxed">
