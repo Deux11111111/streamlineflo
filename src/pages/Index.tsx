@@ -10,32 +10,43 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">
+      {/* SEO Meta Tags */}
       <Helmet>
         {/* Title & Description */}
-        <title>StreamlineFlo | AI Workflow Automation & Business Process Automation</title>
+        <title>StreamlineFlo | AI Automation to Save Time & Boost Efficiency</title>
         <meta
           name="description"
-          content="StreamlineFlo helps businesses save time with AI workflow automation and business process automation. Cut manual tasks by 90% and scale smarter with intelligent automation."
+          content="StreamlineFlo helps businesses save time, reduce manual work, and boost efficiency with AI-powered workflow automation. Automate processes, optimize operations, and scale smarter."
+        />
+        <meta
+          name="keywords"
+          content="StreamlineFlo, AI automation, workflow automation, business automation, process optimization, intelligent automation, save time, boost efficiency"
         />
         <meta name="robots" content="index, follow" />
         <link rel="canonical" href="https://streamlineflo.com/" />
 
         {/* Open Graph / Facebook */}
         <meta property="og:type" content="website" />
-        <meta property="og:title" content="StreamlineFlo | AI Workflow Automation" />
+        <meta
+          property="og:title"
+          content="StreamlineFlo | Save Time & Boost Efficiency with AI Automation"
+        />
         <meta
           property="og:description"
-          content="StreamlineFlo helps businesses save time with AI workflow automation and business process automation. Cut manual tasks by 90% and scale smarter with intelligent automation."
+          content="StreamlineFlo helps businesses save time, reduce manual work, and boost efficiency with AI-powered workflow automation. Automate processes and scale smarter."
         />
         <meta property="og:url" content="https://streamlineflo.com/" />
         <meta property="og:image" content="https://streamlineflo.com/og-image.png" />
 
         {/* Twitter Card */}
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="StreamlineFlo | AI Workflow Automation" />
+        <meta
+          name="twitter:title"
+          content="StreamlineFlo | Save Time & Boost Efficiency with AI Automation"
+        />
         <meta
           name="twitter:description"
-          content="StreamlineFlo helps businesses save time with AI workflow automation and business process automation. Cut manual tasks by 90% and scale smarter with intelligent automation."
+          content="StreamlineFlo helps businesses save time, reduce manual work, and boost efficiency with AI-powered workflow automation. Automate processes and scale smarter."
         />
         <meta name="twitter:image" content="https://streamlineflo.com/og-image.png" />
       </Helmet>
@@ -48,6 +59,7 @@ const Index = () => {
         <div className="absolute bottom-20 right-10 w-36 h-36 bg-secondary/15 rounded-full blur-xl animate-float"></div>
       </div>
 
+      {/* Main Sections */}
       <Hero />
       <Services />
       <AuditForm />
