@@ -48,8 +48,8 @@ const Hero = () => {
             Reduce manual tasks by 90% with intelligent automation solutions
           </h2>
 
-          {/* SEO-Friendly Paragraph */}
-          <p className="font-body text-lg md:text-xl text-muted-foreground mt-6 mb-8 max-w-3xl mx-auto leading-relaxed">
+          {/* SEO-Friendly Paragraph (restored original font sizes) */}
+          <p className="font-body text-xl md:text-2xl text-muted-foreground mb-8 max-w-3xl mx-auto leading-relaxed">
             At <strong>StreamlineFlo</strong>, we specialize in{" "}
             <strong>AI workflow automation</strong> and{" "}
             <strong>business process automation</strong> designed to optimize
