@@ -1,4 +1,4 @@
-// src/components/Hero.tsx
+  // src/components/Hero.tsx
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Zap, Brain, Target } from "lucide-react";
 
@@ -34,8 +34,9 @@ const Hero = () => {
         {/* Hero Content */}
         <div className="max-w-5xl mx-auto animate-slide-up">
           <h1 className="font-display text-4xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight heading-glow">
-            StreamlineFlo — AI Workflow Automation
+          <span className="gradient-text">StreamlineFlo</span> — AI Workflow Automation
           </h1>
+
           
           <p className="font-body text-xl md:text-2xl text-muted-foreground mb-8 max-w-3xl mx-auto leading-relaxed">
             Leading provider of intelligent automation solutions and automated workflows. 
