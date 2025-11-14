@@ -6,6 +6,9 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Sparkles, ArrowRight } from "lucide-react";
 
+// ⭐ Added EmailJS import
+import emailjs from "emailjs-com";
+
 const AuditForm = () => {
   const [formData, setFormData] = useState({
     name: "",
@@ -22,11 +25,33 @@ const AuditForm = () => {
     });
   };
 
+  // ⭐ Updated handleSubmit (keeps everything, adds email sending)
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
 
-    // Simulate form submission
+    // ⭐ Send email through EmailJS before showing your success toast
+    try {
+      await emailjs.send(
+        "service_uf4mka8",     // <-- replace this
+        "template_pq7ii6s",    // <-- replace this
+        {
+          name: formData.name,
+          email: formData.email,
+          company: formData.company
+        },
+        "WjT4D4l5GOzfZPMao"      // <-- replace this
+      );
+    } catch (error) {
+      console.error("EmailJS Error:", error);
+      toast({
+        title: "Error sending email",
+        description: "Something went wrong sending your message, but your request was still submitted.",
+        variant: "destructive",
+      });
+    }
+
+    // ⭐ Your original simulated delay + success toast (unchanged)
     setTimeout(() => {
       toast({
         title: "Audit Request Submitted!",
