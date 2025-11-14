@@ -33,15 +33,15 @@ const AuditForm = () => {
     setIsSubmitting(true);
 
     try {
-      // Send email using EmailJS
+      // Send email using EmailJS with correct template variables
       await emailjs.send(
         EMAILJS_SERVICE_ID,
         EMAILJS_TEMPLATE_ID,
         {
-          from_name: formData.name,
-          from_email: formData.email,
-          company: formData.company,
-          to_name: 'StreamlineFlo Team', // You can customize this
+          name: formData.name,                        // {{name}}
+          email: formData.email,                      // {{email}}
+          message: `Company: ${formData.company}`,    // {{message}}
+          time: new Date().toLocaleString(),          // {{time}}
         },
         EMAILJS_PUBLIC_KEY
       );
@@ -50,7 +50,7 @@ const AuditForm = () => {
         title: "Audit Request Submitted!",
         description: "We'll contact you within 24 hours to schedule your free workflow audit.",
       });
-      
+
       setFormData({ name: "", email: "", company: "" });
     } catch (error) {
       console.error('EmailJS error:', error);
