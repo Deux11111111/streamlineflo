@@ -1,4 +1,4 @@
-{/* import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Send, MessageCircle, X, Bot } from "lucide-react";
 
 // Utility for combining class names
@@ -201,7 +201,7 @@ const N8nChat: React.FC<N8nChatProps> = ({
       
       <div className={`fixed bottom-6 ${positionClass} z-50 font-sans`}>
         {/* Chat Widget */}
-  {/*      <div
+       <div
           className={cn(
             "relative w-96 h-[500px] mb-4 rounded-2xl overflow-hidden transition-all duration-200",
             "bg-[#1a1a2e]/95 backdrop-blur-xl border border-[#3b4d66]/30",
@@ -211,7 +211,7 @@ const N8nChat: React.FC<N8nChatProps> = ({
           )}
         >
           {/* Close Button - Top Right */}
-{/*          <button
+          <button
             onClick={() => setIsOpen(false)}
             className="absolute top-3 right-3 z-10 p-1.5 hover:bg-white/20 rounded-full transition-all duration-200 hover:scale-110"
           >
@@ -219,7 +219,7 @@ const N8nChat: React.FC<N8nChatProps> = ({
           </button>
 
           {/* Header */}
-{/*          <div className="bg-gradient-to-r from-[#6366f1] to-[#8b5cf6] p-4 pr-12 flex items-center">
+          <div className="bg-gradient-to-r from-[#6366f1] to-[#8b5cf6] p-4 pr-12 flex items-center">
             <div className="flex items-center gap-3">
               <div className="relative w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
                 <Bot className="w-5 h-5 text-white" />
@@ -233,7 +233,7 @@ const N8nChat: React.FC<N8nChatProps> = ({
           </div>
 
           {/* Messages */}
-{/*          <div className="h-[350px] p-4 overflow-y-auto bg-[#1a1a2e]">
+          <div className="h-[350px] p-4 overflow-y-auto bg-[#1a1a2e]">
             {messages.map((message) => (
               <div
                 key={message.id}
@@ -266,7 +266,7 @@ const N8nChat: React.FC<N8nChatProps> = ({
             ))}
 
             {/* Typing Indicator */}
-  {/*          {isLoading && (
+            {isLoading && (
               <div className="mb-4 text-left animate-chatbot-slide-up">
                 <div className="inline-flex items-center gap-1 bg-[#16213e] text-white/90 px-3 py-2 rounded-2xl">
                   <span className="typing-dot bg-white/70"></span>
@@ -280,7 +280,7 @@ const N8nChat: React.FC<N8nChatProps> = ({
           </div>
 
           {/* Input Area */}
-{/*          <div className="p-4 border-t border-[#3b4d66]/20 bg-[#1a1a2e] flex gap-2">
+          <div className="p-4 border-t border-[#3b4d66]/20 bg-[#1a1a2e] flex gap-2">
             <input
               type="text"
               value={inputValue}
@@ -301,7 +301,7 @@ const N8nChat: React.FC<N8nChatProps> = ({
         </div>
 
         {/* Toggle Button */}
-{/*        <button
+        <button
           onClick={() => setIsOpen(!isOpen)}
           className={cn(
             "w-14 h-14 rounded-full bg-gradient-to-r from-[#6366f1] to-[#8b5cf6] border-none text-white cursor-pointer transition-all duration-300 flex items-center justify-center relative",
