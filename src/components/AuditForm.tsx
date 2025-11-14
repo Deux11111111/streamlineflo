@@ -5,6 +5,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Sparkles, ArrowRight } from "lucide-react";
+import emailjs from '@emailjs/browser';
+
+// 👇 PUT YOUR EMAILJS CREDENTIALS HERE
+const EMAILJS_SERVICE_ID = 'service_uf4mka8';
+const EMAILJS_TEMPLATE_ID = 'template_pq7ii6s';
+const EMAILJS_PUBLIC_KEY = 'WjT4D4l5GOzfZPMao';
 
 const AuditForm = () => {
   const [formData, setFormData] = useState({
@@ -26,15 +32,36 @@ const AuditForm = () => {
     e.preventDefault();
     setIsSubmitting(true);
 
-    // Simulate form submission
-    setTimeout(() => {
+    try {
+      // Send email using EmailJS
+      await emailjs.send(
+        EMAILJS_SERVICE_ID,
+        EMAILJS_TEMPLATE_ID,
+        {
+          from_name: formData.name,
+          from_email: formData.email,
+          company: formData.company,
+          to_name: 'StreamlineFlo Team', // You can customize this
+        },
+        EMAILJS_PUBLIC_KEY
+      );
+
       toast({
         title: "Audit Request Submitted!",
         description: "We'll contact you within 24 hours to schedule your free workflow audit.",
       });
+      
       setFormData({ name: "", email: "", company: "" });
+    } catch (error) {
+      console.error('EmailJS error:', error);
+      toast({
+        title: "Submission Failed",
+        description: "There was an error submitting your request. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
       setIsSubmitting(false);
-    }, 1500);
+    }
   };
 
   return (
