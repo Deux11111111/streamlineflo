@@ -11,6 +11,7 @@ import N8nChat from "./components/N8nChat";
 const queryClient = new QueryClient();
 
 const App = () => (
+   const showChatbot = false; // set to true to enable later
   <QueryClientProvider client={queryClient}>
     <HelmetProvider>
       <TooltipProvider>
