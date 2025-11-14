@@ -6,7 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
-import N8nChat from "./components/N8nChat";
+// import N8nChat from "./components/N8nChat";
 
 const queryClient = new QueryClient();
 
