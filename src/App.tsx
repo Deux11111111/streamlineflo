@@ -10,29 +10,35 @@ import N8nChat from "./components/N8nChat";
 
 const queryClient = new QueryClient();
 
-const App = () => (
-   const showChatbot = false; // set to true to enable later
-  <QueryClientProvider client={queryClient}>
-    <HelmetProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
+const App = () => {
+  const showChatbot = false; // toggle chatbot on/off
 
-        <N8nChat 
-          webhookUrl="https://jeffzeb12.app.n8n.cloud/webhook/c803253c-f26b-4a80-83a5-53fad70dbdb6/chat"
-          title="Your Assistant"
-          subtitle="How can I help you today?"
-          position="bottom-right"
-        />
-      </TooltipProvider>
-    </HelmetProvider>
-  </QueryClientProvider>
-);
+  return (
+    <QueryClientProvider client={queryClient}>
+      <HelmetProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+
+          {/* Conditional render */}
+          {showChatbot && (
+            <N8nChat
+              webhookUrl="https://jeffzeb12.app.n8n.cloud/webhook/c803253c-f26b-4a80-83a5-53fad70dbdb6/chat"
+              title="Your Assistant"
+              subtitle="How can I help you today?"
+              position="bottom-right"
+            />
+          )}
+        </TooltipProvider>
+      </HelmetProvider>
+    </QueryClientProvider>
+  );
+};
 
 export default App;
